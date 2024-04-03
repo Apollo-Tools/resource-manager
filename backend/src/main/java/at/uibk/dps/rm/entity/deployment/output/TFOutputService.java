@@ -11,6 +11,8 @@ import java.util.Map;
  *
  * @author matthi-g
  */
+// TODO: remove
+@Deprecated
 @Data
 @NoArgsConstructor
 public class TFOutputService {

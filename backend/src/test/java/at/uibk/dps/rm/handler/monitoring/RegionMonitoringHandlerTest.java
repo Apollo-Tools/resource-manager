@@ -16,22 +16,16 @@ import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -75,27 +69,22 @@ public class RegionMonitoringHandlerTest {
     @Mock
     private Process p1, p2, p3;
 
-    private static Logger logger;
-
-    private static MockedStatic<LoggerFactory> mockedLoggerFactory;
+    private static LogCaptor logCaptor;
 
     private Region reg1, reg2, reg3;
 
     @BeforeAll
     static void initAll() {
-        logger = mock(Logger.class);
-        mockedLoggerFactory = mockStatic(LoggerFactory.class);
-        mockedLoggerFactory.when(() -> LoggerFactory.getLogger(RegionMonitoringHandler.class)).thenReturn(logger);
+        logCaptor = LogCaptor.forClass(RegionMonitoringHandler .class);
     }
 
     @AfterAll
     static void cleanupAll() {
-        mockedLoggerFactory.close();
+        logCaptor.close();
     }
 
     @BeforeEach
     void initTest(Vertx vertx) {
-        clearInvocations(logger);
         JsonMapperConfig.configJsonMapper();
         ConfigDTO configDTO = TestConfigProvider.getConfigDTO();
         spyVertx = spy(vertx);
@@ -110,6 +99,11 @@ public class RegionMonitoringHandlerTest {
         lenient().when(spyVertx.fileSystem()).thenReturn(fileSystem);
     }
 
+    @AfterEach
+    void cleanupEach() {
+        logCaptor.clearLogs();
+    }
+
     @Test
     public void startMonitoringLoopNoRegions(VertxTestContext testContext) throws InterruptedException {
         when(regionService.findAllByProviderName(ResourceProviderEnum.AWS.getValue()))
@@ -119,10 +113,7 @@ public class RegionMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(2)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor regions");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Finished: monitor regions");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor regions", "Finished: monitor regions"));
         testContext.completeNow();
     }
 
@@ -155,14 +146,9 @@ public class RegionMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(6)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor regions");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Monitor latency: us-east-1");
-        assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Monitor latency: us-east-2");
-        assertThat(loggerInfo.getAllValues().get(3)).isEqualTo("Region us-east-2 not reachable: offline");
-        assertThat(loggerInfo.getAllValues().get(4)).isEqualTo("Monitor latency: us-west-1");
-        assertThat(loggerInfo.getAllValues().get(5)).isEqualTo("Finished: monitor regions");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor regions", "Monitor latency: us-east-1",
+            "Monitor latency: us-east-2", "Region us-east-2 not reachable: offline", "Monitor latency: us-west-1",
+            "Finished: monitor regions"));
         testContext.completeNow();
     }
 
@@ -174,12 +160,9 @@ public class RegionMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor regions");
-        ArgumentCaptor<String> loggerError = ArgumentCaptor.forClass(String.class);
-        verify(logger).error(loggerError.capture());
-        assertThat(loggerError.getAllValues().get(0)).isEqualTo("error");
+
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor regions"));
+        assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("error"));
         testContext.completeNow();
     }
 

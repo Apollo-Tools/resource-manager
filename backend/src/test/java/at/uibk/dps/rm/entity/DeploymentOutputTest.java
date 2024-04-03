@@ -27,12 +27,12 @@ public class DeploymentOutputTest {
     }
 
     public static Stream<Arguments> provideJsonObject() {
-        JsonObject jo1 = new JsonObject("{\"resource_output\": {\"sensitive\": true,\"type\": \"object\", \"value\": " +
+        JsonObject jo1 = new JsonObject("{\"function_output\": {\"sensitive\": true,\"type\": \"object\", \"value\": " +
             "{\"r1_test_python38_1\": {\"base_url\": \"http://192.168.0.1\", \"full_url\": \"http://192.168.0" +
             ".1:8080/function/r1_test_python38_1\", \"metrics_port\": 9100, \"openfaas_port\": 8080, \"path\": " +
-            "\"/function/r1_test_python38_23\"}}}}");
-        JsonObject jo2 = new JsonObject("{\"resource_output\": {\"sensitive\": true, \"type\": \"object\"}}");
-        JsonObject jo3 = new JsonObject("{\"resource_output\": {\"sensitive\": true, \"type\": \"string\", " +
+            "\"/function/r1_test_python38_23\"}}}, \"service_output\": \"invalid\"}");
+        JsonObject jo2 = new JsonObject("{\"function_output\": {\"sensitive\": true, \"type\": \"object\"}}");
+        JsonObject jo3 = new JsonObject("{\"function_output\": {\"sensitive\": true, \"type\": \"string\", " +
             "\"value\": {}, \"invalid\": 1}}");
 
         return Stream.of(

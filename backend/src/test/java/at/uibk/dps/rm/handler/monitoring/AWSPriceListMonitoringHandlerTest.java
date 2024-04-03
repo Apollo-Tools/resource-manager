@@ -16,24 +16,18 @@ import at.uibk.dps.rm.testutil.objectprovider.*;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import kotlin.Pair;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
@@ -75,9 +69,7 @@ public class AWSPriceListMonitoringHandlerTest {
     @Mock
     private EC2PriceMonitoring ec2PriceMonitoring;
 
-    private static Logger logger;
-
-    private static MockedStatic<LoggerFactory> mockedLoggerFactory;
+    private static LogCaptor logCaptor;
 
     private Platform pLambda, pEC2;
     private Region reg1, reg2;
@@ -86,19 +78,16 @@ public class AWSPriceListMonitoringHandlerTest {
 
     @BeforeAll
     static void initAll() {
-        logger = mock(Logger.class);
-        mockedLoggerFactory = mockStatic(LoggerFactory.class);
-        mockedLoggerFactory.when(() -> LoggerFactory.getLogger(AWSPriceListMonitoringHandler.class)).thenReturn(logger);
+        logCaptor = LogCaptor.forClass(AWSPriceListMonitoringHandler.class);
     }
 
     @AfterAll
     static void cleanupAll() {
-        mockedLoggerFactory.close();
+        logCaptor.close();
     }
 
     @BeforeEach
     void initTest(Vertx vertx) {
-        clearInvocations(logger);
         JsonMapperConfig.configJsonMapper();
         ConfigDTO configDTO = TestConfigProvider.getConfigDTO();
         configDTO.setAwsPriceMonitoringPeriod(5.0);
@@ -122,6 +111,11 @@ public class AWSPriceListMonitoringHandlerTest {
         lenient().when(serviceProxyProvider.getAwsPricePushService()).thenReturn(awsPricePushService);
     }
 
+    @AfterEach
+    void cleanupEach() {
+        logCaptor.clearLogs();
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     public void testStartValidationLoopNoPlatforms(boolean pauseLoop, VertxTestContext testContext)
@@ -136,16 +130,12 @@ public class AWSPriceListMonitoringHandlerTest {
             monitoringHandler.pauseMonitoringLoop();
             testContext.awaitCompletion(5, TimeUnit.SECONDS);
             verify(spyVertx).setTimer(eq(5000L), any());
-            ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-            verify(logger).info(loggerInfo.capture());
-            assertThat(loggerInfo.getValue()).isEqualTo("Finished: monitor aws price list");
+            assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Finished: monitor aws price list"));
         } else {
             testContext.awaitCompletion(5, TimeUnit.SECONDS);
             verify(spyVertx, times(2)).setTimer(eq(5000L), any());
-            ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-            verify(logger, times(2)).info(loggerInfo.capture());
-            assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Finished: monitor aws price list");
-            assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Finished: monitor aws price list");
+            assertThat(logCaptor.getInfoLogs())
+                .isEqualTo(List.of("Finished: monitor aws price list", "Finished: monitor aws price list"));
         }
         testContext.completeNow();
     }
@@ -163,16 +153,11 @@ public class AWSPriceListMonitoringHandlerTest {
             monitoringHandler.pauseMonitoringLoop();
             testContext.awaitCompletion(5, TimeUnit.SECONDS);
             verify(spyVertx).setTimer(eq(5000L), any());
-            ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-            verify(logger).error(loggerInfo.capture());
-            assertThat(loggerInfo.getValue()).isEqualTo("bad input");
+            assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("bad input"));
         } else {
             testContext.awaitCompletion(5, TimeUnit.SECONDS);
             verify(spyVertx, times(2)).setTimer(eq(5000L), any());
-            ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-            verify(logger, times(2)).error(loggerInfo.capture());
-            assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("bad input");
-            assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("bad input");
+            assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("bad input", "bad input"));
         }
         testContext.completeNow();
     }
@@ -209,11 +194,8 @@ public class AWSPriceListMonitoringHandlerTest {
         monitoringHandler.pauseMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx, times(1)).setTimer(eq(5000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(3)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("skipping platform k8s");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("skipping platform k8s");
-        assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Finished: monitor aws price list");
+        assertThat(logCaptor.getInfoLogs())
+            .isEqualTo(List.of("skipping platform k8s", "skipping platform k8s", "Finished: monitor aws price list"));
         testContext.completeNow();
     }
 }

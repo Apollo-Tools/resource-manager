@@ -78,6 +78,7 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers:1.19.1")
   testImplementation("org.testcontainers:postgresql:1.19.1")
   testImplementation("org.testcontainers:junit-jupiter:1.19.1")
+  testImplementation("io.github.hakky54:logcaptor:2.9.2")
 
   // Commons
   implementation("org.apache.commons:commons-lang3:3.13.0")

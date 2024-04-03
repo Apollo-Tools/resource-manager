@@ -164,10 +164,10 @@ public class RegionFaasFileServiceTest {
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"resource_output\" {\n" +
-            "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\",\"r2_foo2_python38_1\"," +
-                "\"r3_foo1_python38_1\",], [module.r2_foo1_python38.resource_output,module.r2_foo2_python38.resource_output," +
-                "module.r3_foo1_python38.resource_output,]))\n" +
+            "output \"function_output\" {\n" +
+            "  value = merge(module.lambda.function_output, zipmap([\"r2_foo1_python38_1\",\"r2_foo2_python38_1\"," +
+                "\"r3_foo1_python38_1\",], [module.r2_foo1_python38.function_output,module.r2_foo2_python38.function_output," +
+                "module.r3_foo1_python38.function_output,]))\n" +
             "}\n"
         );
     }
@@ -215,32 +215,32 @@ public class RegionFaasFileServiceTest {
 
         if (blankLambda && !blankOpenFaas && !blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"resource_output\" {\n" +
+                "output \"function_output\" {\n" +
                     "  value = merge({}, zipmap([\"r1_foo1_python38_1\",\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r1_foo1_python38.resource_output," +
-                    "module.r2_foo1_python38.resource_output,module.r2_foo2_python38.resource_output," +
-                    "module.r3_foo1_python38.resource_output,]))\n" +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r1_foo1_python38.function_output," +
+                    "module.r2_foo1_python38.function_output,module.r2_foo2_python38.function_output," +
+                    "module.r3_foo1_python38.function_output,]))\n" +
                     "}\n"
             );
         } else if (!blankLambda && blankOpenFaas && !blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"resource_output\" {\n" +
-                    "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",], [module.r2_foo1_python38.resource_output," +
-                    "module.r2_foo2_python38.resource_output,]))\n" +
+                "output \"function_output\" {\n" +
+                    "  value = merge(module.lambda.function_output, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",], [module.r2_foo1_python38.function_output," +
+                    "module.r2_foo2_python38.function_output,]))\n" +
                     "}\n"
             );
         } else if (!blankLambda && !blankOpenFaas && blankEc2) {
             assertThat(result).isEqualTo(
-                "output \"resource_output\" {\n" +
-                    "  value = merge(module.lambda.resource_output, zipmap([\"r2_foo1_python38_1\"," +
-                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r2_foo1_python38.resource_output," +
-                    "module.r2_foo2_python38.resource_output,module.r3_foo1_python38.resource_output,]))\n" +
+                "output \"function_output\" {\n" +
+                    "  value = merge(module.lambda.function_output, zipmap([\"r2_foo1_python38_1\"," +
+                    "\"r2_foo2_python38_1\",\"r3_foo1_python38_1\",], [module.r2_foo1_python38.function_output," +
+                    "module.r2_foo2_python38.function_output,module.r3_foo1_python38.function_output,]))\n" +
                     "}\n"
             );
         } else {
             assertThat(result).isEqualTo(
-                "output \"resource_output\" {\n" +
+                "output \"function_output\" {\n" +
                     "  value = merge({}, {})\n" +
                     "}\n"
             );
