@@ -11,7 +11,6 @@ import at.uibk.dps.rm.testutil.SessionMockHelper;
 import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestServiceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
-import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -23,11 +22,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,62 +55,74 @@ public class ServiceDeploymentImplTest {
     @Mock
     private SessionManager sessionManager;
 
+    private final long accountId = 1L;
+    private final long deploymentId = 2L;
+
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
         service = new ServiceDeploymentServiceImpl(repository, smProvider);
     }
 
+    private static Stream<Arguments> provideFindAllForServiceOperation() {
+        return Stream.of(
+            Arguments.of(List.of(1L, 2L, 3L), List.of("DEPLOYED", "DEPLOYED", "DEPLOYED"), true),
+            Arguments.of(List.of(1L, 2L, 3L), List.of("DEPLOYED", "NEW", "DEPLOYED"), false)
+        );
+    }
+
     @ParameterizedTest
-    @CsvSource({
-        "NEW, false",
-        "DEPLOYED, true"
-    })
-    void findAllForServiceOperation(String status, boolean valid,
+    @MethodSource("provideFindAllForServiceOperation")
+    void findAllForServiceOperation(List<Long> resourceDeploymentIds, List<String> statusList, boolean valid,
             VertxTestContext testContext) {
-        long accountId = 1L, resourceDeploymentId = 2L;
-        DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(status);
-        Deployment d1 = TestDeploymentProvider.createDeployment(1L);
-        ResourceDeploymentStatus rds = TestDeploymentProvider
-            .createResourceDeploymentStatus(1L, statusValue);
-        ServiceDeployment sd = TestServiceProvider.createServiceDeployment(2L, 2L, d1);
-        sd.setStatus(rds);
+        Deployment d1 = TestDeploymentProvider.createDeployment(deploymentId);
+        List<ServiceDeployment> serviceDeployments = new ArrayList<>();
+        for (int i = 0; i < resourceDeploymentIds.size(); i++) {
+            DeploymentStatusValue statusValue = DeploymentStatusValue.valueOf(statusList.get(i));
+            ResourceDeploymentStatus rds = TestDeploymentProvider
+                .createResourceDeploymentStatus(resourceDeploymentIds.get(i), statusValue);
+            ServiceDeployment sd = TestServiceProvider.createServiceDeployment(resourceDeploymentIds.get(i), 2L, d1);
+            sd.setStatus(rds);
+            serviceDeployments.add(sd);
+        }
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
-            .thenReturn(Maybe.just(sd));
+        when(repository
+            .findAllByIdsAccountIdAndDeploymentId(sessionManager, resourceDeploymentIds, accountId, deploymentId))
+            .thenReturn(Single.just(serviceDeployments));
+        when(sessionManager.fetch(any())).thenReturn(Single.just(List.of()));
 
         Handler<AsyncResult<JsonArray>> handler;
         if (valid) {
-            when(sessionManager.fetch(any())).thenReturn(Single.just(List.of()));
             handler = testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(3);
-                assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
-                assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
-                assertThat(result.getJsonObject(2).getLong("resource_deployment_id")).isEqualTo(resourceDeploymentId);
+                assertThat(result.getJsonObject(0).getLong("resource_deployment_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("resource_deployment_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(2).getLong("resource_deployment_id")).isEqualTo(3L);
                 testContext.completeNow();
             }));
         } else {
             handler = testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
                 assertThat(throwable.getMessage())
-                    .isEqualTo("Service Deployment is not ready for startup/termination");
+                    .isEqualTo("Service Deployment is not ready for startup/shutdown");
                 testContext.completeNow();
             }));
         }
 
-        service.findAllForServiceOperation(List.of(resourceDeploymentId), accountId, 1L, handler);
+        service.findAllForServiceOperation(resourceDeploymentIds, accountId, deploymentId, handler);
     }
 
     @Test
-    void findAllForServiceOperationNotFound(VertxTestContext testContext) {
-        long accountId = 1L, resourceDeploymentId = 2L;
+    void findAllForServiceOperationEmpty(VertxTestContext testContext) {
+        long resourceDeploymentId = 2L;
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
-        when(repository.findByIdAndAccountId(sessionManager, resourceDeploymentId, accountId))
-            .thenReturn(Maybe.empty());
+        when(repository.findAllByIdsAccountIdAndDeploymentId(sessionManager, List.of(resourceDeploymentId),
+            accountId, deploymentId))
+            .thenReturn(Single.just(List.of()));
 
-        service.findAllForServiceOperation(List.of(resourceDeploymentId), accountId, 1L,
+        service.findAllForServiceOperation(List.of(resourceDeploymentId), accountId, deploymentId,
             testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.isEmpty()).isEqualTo(true);
                 testContext.completeNow();

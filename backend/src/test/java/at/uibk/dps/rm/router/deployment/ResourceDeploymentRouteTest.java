@@ -3,6 +3,7 @@ package at.uibk.dps.rm.router.deployment;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.testutil.integration.RouterTest;
 import at.uibk.dps.rm.testutil.objectprovider.*;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
@@ -30,12 +31,13 @@ public class ResourceDeploymentRouteTest extends RouterTest {
     @Test
     void startResourceDeployment(Vertx vertx, VertxTestContext testContext) {
         WebClient client = WebClient.create(vertx);
-        client.post(API_PORT, API_URL, "/api/service-deployments/2/startup")
+        client.post(API_PORT, API_URL, "/api/service-deployments/startup")
             .putHeader("Authorization", jwtAdmin)
-            .send()
+            .sendJsonObject(new JsonObject("{\"deployment_id\": 1111,\"service_deployments\": [\n" +
+                "{\"resource_deployment_id\": 1}]}"))
             .subscribe(result -> {
                 if (result.statusCode() == 404) {
-                    assertThat(result.bodyAsString()).isEqualTo("ServiceDeployment not found");
+                    assertThat(result.bodyAsString()).isEqualTo("Deployment not found");
                     testContext.completeNow();
                 } else {
                     testContext.failNow("operation failed");

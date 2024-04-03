@@ -35,16 +35,6 @@ public class MainFileServiceTest {
 
         assertThat(result).isEqualTo(
             "terraform {\n" +
-            "  required_providers {\n" +
-            "    aws = {\n" +
-            "      source  = \"hashicorp/aws\"\n" +
-            "      version = \"~> 4.16\"\n" +
-            "    }\n" +
-            "    kubernetes = {\n" +
-            "      source = \"hashicorp/kubernetes\"\n" +
-            "      version = \"2.20.0\"\n" +
-            "    }\n" +
-            "  }\n" +
             "  required_version = \">= 1.2.0\"\n" +
             "}\n");
     }
@@ -57,7 +47,7 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        TerraformModule m4 = new ServiceModule("container_prepull", ModuleType.SERVICE_PREPULL);
+        TerraformModule m4 = new ServiceModule("service_prepull", ModuleType.SERVICE_PREPULL);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
             List.of(m1, m2, m3, m4));
         String result = service.getLocalModulesString();
@@ -84,8 +74,8 @@ public class MainFileServiceTest {
                 "  session_token = var.custom_edge_session_token\n" +
                 "  openfaas_login_data = var.openfaas_login_data\n" +
                 "}\n" +
-                "module \"container\" {\n" +
-                "  source = \"./container\"\n" +
+                "module \"service_prepull\" {\n" +
+                "  source = \"./service_prepull\"\n" +
                 "}\n");
     }
 
@@ -98,16 +88,6 @@ public class MainFileServiceTest {
 
         assertThat(result).isEqualTo(
             "terraform {\n" +
-                "  required_providers {\n" +
-                "    aws = {\n" +
-                "      source  = \"hashicorp/aws\"\n" +
-                "      version = \"~> 4.16\"\n" +
-                "    }\n" +
-                "    kubernetes = {\n" +
-                "      source = \"hashicorp/kubernetes\"\n" +
-                "      version = \"2.20.0\"\n" +
-                "    }\n" +
-                "  }\n" +
                 "  required_version = \">= 1.2.0\"\n" +
                 "}\n" +
                 "module \"aws_r1\" {\n" +
@@ -177,24 +157,29 @@ public class MainFileServiceTest {
         TerraformModule m1 = new FaasModule(ResourceProviderEnum.AWS, r1);
         TerraformModule m2 = new FaasModule(ResourceProviderEnum.AWS, r2);
         TerraformModule m3 = new FaasModule(ResourceProviderEnum.CUSTOM_EDGE, r3);
-        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1, m2, m3));
+        TerraformModule m4 = new ServiceModule("service_deploy", ModuleType.SERVICE_DEPLOY);
+        MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(),
+            List.of(m1, m2, m3, m4));
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"resource_output\" {\n" +
-                "   value = merge(module.aws_r1.resource_output,module.aws_r2.resource_output," +
-                "module.custom-edge_r3.resource_output,)\n" +
+            "output \"function_output\" {\n" +
+                "   value = merge(module.aws_r1.function_output,module.aws_r2.function_output," +
+                "module.custom-edge_r3.function_output,)\n" +
+                "}\n" +
+                "output \"service_output\" {\n" +
+                "   value = module.service_deploy\n" +
                 "}\n");
     }
 
     @Test
     void getOutputsFileContentNone(Vertx vertx) {
-        TerraformModule m1 = new ServiceModule("container_prepull", ModuleType.SERVICE_PREPULL);
+        TerraformModule m1 = new ServiceModule("service_prepull", ModuleType.SERVICE_PREPULL);
         MainFileService service = TestFileServiceProvider.createMainFileService(vertx.fileSystem(), List.of(m1));
         String result = service.getOutputsFileContent();
 
         assertThat(result).isEqualTo(
-            "output \"resource_output\" {\n" +
+            "output \"function_output\" {\n" +
                 "   value = merge()\n" +
                 "}\n");
     }

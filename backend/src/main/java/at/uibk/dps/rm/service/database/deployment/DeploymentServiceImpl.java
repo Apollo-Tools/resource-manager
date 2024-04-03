@@ -2,7 +2,6 @@ package at.uibk.dps.rm.service.database.deployment;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputService;
 import at.uibk.dps.rm.entity.deployment.output.TFOutputFaas;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.*;
@@ -345,7 +344,6 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             DeploymentOutput deploymentOutput = new DeploymentOutput();
             if (terraformOutput.isEmpty()) {
                 deploymentOutput.setFunctionOutput(new TFOutputFaas());
-                deploymentOutput.setServiceOutput(new TFOutputService());
             } else {
                 deploymentOutput = DeploymentOutput.fromJson(terraformOutput);
             }

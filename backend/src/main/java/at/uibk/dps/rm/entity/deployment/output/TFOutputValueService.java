@@ -12,6 +12,8 @@ import java.util.Map;
  *
  * @author matthi-g
  */
+// TODO: remove
+@Deprecated
 @Getter
 @Setter
 public class TFOutputValueService {

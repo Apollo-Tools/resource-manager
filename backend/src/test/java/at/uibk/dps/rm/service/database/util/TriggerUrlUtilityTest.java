@@ -105,17 +105,17 @@ public class TriggerUrlUtilityTest {
     }
 
     @Test
-    void setTriggerUrlForContainers(VertxTestContext testContext) {
+    void setTriggerUrlForServices(VertxTestContext testContext) {
         DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
 
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 4L, "/service-deployments/4/startup"))
+            .updateRmTriggerUrl(sessionManager, 4L, "/service-deployments/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 5L, "/service-deployments/5/startup"))
+            .updateRmTriggerUrl(sessionManager, 5L, "/service-deployments/startup"))
             .thenReturn(Completable.complete());
         when(repositoryMock.getResourceDeploymentRepository()
-            .updateRmTriggerUrl(sessionManager, 6L, "/service-deployments/6/startup"))
+            .updateRmTriggerUrl(sessionManager, 6L, "/service-deployments/startup"))
             .thenReturn(Completable.complete());
 
         utility.setTriggerUrlForServices(sessionManager, deployResourcesDTO)

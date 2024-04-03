@@ -1,9 +1,7 @@
 package at.uibk.dps.rm.testutil.objectprovider;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputFaas;
-import at.uibk.dps.rm.entity.deployment.output.TFOutputValueFaas;
+import at.uibk.dps.rm.entity.deployment.output.*;
 import at.uibk.dps.rm.entity.model.*;
 import lombok.experimental.UtilityClass;
 
@@ -99,12 +97,12 @@ public class TestDeploymentProvider {
     public static DeploymentOutput createDeploymentOutput(String runtime) {
         DeploymentOutput output = new DeploymentOutput();
         TFOutputFaas tfOutputFaas = new TFOutputFaas();
-        Map<String, TFOutputValueFaas> values = new HashMap<>();
-        values.put("r1_foo1_" + runtime + "_1", createTFOutputValue("http://host:8080/foo1", "foo1",
+        Map<String, TFOutputValueFaas> faasValues = new HashMap<>();
+        faasValues.put("r1_foo1_" + runtime + "_1", createTFOutputValue("http://host:8080/foo1", "foo1",
             "http://host", 9100, 8080));
-        values.put("r3_foo2_" + runtime + "_1", createTFOutputValue("http://host:8080/foo2", "foo2",
+        faasValues.put("r3_foo2_" + runtime + "_1", createTFOutputValue("http://host:8080/foo2", "foo2",
             "http://host", 9100, 8080));
-        tfOutputFaas.setValue(values);
+        tfOutputFaas.setValue(faasValues);
         output.setFunctionOutput(tfOutputFaas);
         return output;
     }

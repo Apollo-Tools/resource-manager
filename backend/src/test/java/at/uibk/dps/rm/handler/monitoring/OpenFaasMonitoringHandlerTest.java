@@ -15,22 +15,16 @@ import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import nl.altindag.log.LogCaptor;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URISyntaxException;
@@ -76,27 +70,22 @@ public class OpenFaasMonitoringHandlerTest {
     @Mock
     private Process p1, p2;
 
-    private static Logger logger;
-
-    private static MockedStatic<LoggerFactory> mockedLoggerFactory;
+    private static LogCaptor logCaptor;
 
     private Resource r1, r2, r3;
 
     @BeforeAll
     static void initAll() {
-        logger = mock(Logger.class);
-        mockedLoggerFactory = mockStatic(LoggerFactory.class);
-        mockedLoggerFactory.when(() -> LoggerFactory.getLogger(OpenFaasMonitoringHandler.class)).thenReturn(logger);
+        logCaptor = LogCaptor.forClass(OpenFaasMonitoringHandler.class);
     }
 
     @AfterAll
     static void cleanupAll() {
-        mockedLoggerFactory.close();
+        logCaptor.close();
     }
 
     @BeforeEach
     void initTest(Vertx vertx) {
-        clearInvocations(logger);
         JsonMapperConfig.configJsonMapper();
         ConfigDTO configDTO = TestConfigProvider.getConfigDTO();
         spyVertx = spy(vertx);
@@ -113,6 +102,11 @@ public class OpenFaasMonitoringHandlerTest {
         lenient().when(spyVertx.fileSystem()).thenReturn(fileSystem);
     }
 
+    @AfterEach
+    void cleanupEach() {
+        logCaptor.clearLogs();
+    }
+
     @Test
     public void startMonitoringLoopNoResources(VertxTestContext testContext) throws InterruptedException {
         when(resourceService.findAllByPlatform(PlatformEnum.OPENFAAS.getValue()))
@@ -122,10 +116,8 @@ public class OpenFaasMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(2)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor openfaas resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Finished: monitor openfaas resources");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor openfaas resources",
+            "Finished: monitor openfaas resources"));
         testContext.completeNow();
     }
 
@@ -152,13 +144,9 @@ public class OpenFaasMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(5)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor openfaas resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Monitor latency: mainresource1");
-        assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Monitor latency: mainresource3");
-        assertThat(loggerInfo.getAllValues().get(3)).isEqualTo("Resource mainresource3 not reachable: offline");
-        assertThat(loggerInfo.getAllValues().get(4)).isEqualTo("Finished: monitor openfaas resources");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor openfaas resources",
+            "Monitor latency: mainresource1", "Monitor latency: mainresource3",
+            "Resource mainresource3 not reachable: offline", "Finished: monitor openfaas resources"));
         testContext.completeNow();
     }
 
@@ -170,12 +158,8 @@ public class OpenFaasMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor openfaas resources");
-        ArgumentCaptor<String> loggerError = ArgumentCaptor.forClass(String.class);
-        verify(logger).error(loggerError.capture());
-        assertThat(loggerError.getAllValues().get(0)).isEqualTo("error");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor openfaas resources"));
+        assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("error"));
         testContext.completeNow();
     }
 

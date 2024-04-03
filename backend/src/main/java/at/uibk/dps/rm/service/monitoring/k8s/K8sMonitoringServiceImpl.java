@@ -4,7 +4,6 @@ import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sNode;
 import at.uibk.dps.rm.entity.monitoring.kubernetes.K8sPod;
 import at.uibk.dps.rm.exception.MonitoringException;
-import at.uibk.dps.rm.verticle.MonitoringVerticle;
 import io.kubernetes.client.Metrics;
 import io.kubernetes.client.custom.NodeMetrics;
 import io.kubernetes.client.custom.PodMetrics;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
  */
 public class K8sMonitoringServiceImpl implements K8sMonitoringService {
 
-    private static final Logger logger = LoggerFactory.getLogger(MonitoringVerticle.class);
+    private static final Logger logger = LoggerFactory.getLogger(K8sMonitoringServiceImpl.class);
 
     private final String POD_LABEL_SELECTOR = "source=apollo-rm-deployment,apollo-type=pod";
 

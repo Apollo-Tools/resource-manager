@@ -15,8 +15,6 @@ public class DeploymentOutput {
 
     private TFOutputFaas functionOutput;
 
-    private TFOutputService serviceOutput;
-
     /**
      * Create an instance from the terraform output in JSON-format.
      *
@@ -24,7 +22,8 @@ public class DeploymentOutput {
      * @return the new object
      */
     public static DeploymentOutput fromJson(JsonObject jsonObject) {
-        for (String type : new String[]{"function_output", "service_output"}) {
+        jsonObject.remove("service_output");
+        for (String type : new String[]{"function_output"}) {
             if (!jsonObject.containsKey(type)) {
                 continue;
             }

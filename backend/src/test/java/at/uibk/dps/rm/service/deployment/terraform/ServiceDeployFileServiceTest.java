@@ -6,6 +6,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestDeploymentProvider;
 import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.rxjava3.core.Vertx;
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Implements tests for the {@link ServiceDeployFileService} class.
@@ -34,17 +36,8 @@ public class ServiceDeployFileServiceTest {
     void getProviderString(Vertx vertx) {
         ServiceDeployFileService service =
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
-        String result = service.getProviderString();
 
-        assertThat(result).isEqualTo("terraform {\n" +
-            "  required_providers {\n" +
-            "    kubernetes = {\n" +
-            "      source = \"hashicorp/kubernetes\"\n" +
-            "      version = \"2.20.0\"\n" +
-            "    }\n" +
-            "  }\n" +
-            "  required_version = \">= 1.2.0\"\n" +
-            "}\n");
+        assertThrows(NotImplementedException.class, service::getProviderString);
     }
 
     @ParameterizedTest
@@ -68,17 +61,8 @@ public class ServiceDeployFileServiceTest {
         String result = service.getMainFileContent();
 
         assertThat(result).isEqualTo(
-            "terraform {\n" +
-                "  required_providers {\n" +
-                "    kubernetes = {\n" +
-                "      source = \"hashicorp/kubernetes\"\n" +
-                "      version = \"2.20.0\"\n" +
-                "    }\n" +
-                "  }\n" +
-                "  required_version = \">= 1.2.0\"\n" +
-                "}\n" +
-                "module \"deployment_1_22\" {\n" +
-                "  source = \"../../../../terraform/k8s/deployment\"\n" +
+                "module \"deployment_1\" {\n" +
+                "  source = \"../../../terraform/k8s/deployment\"\n" +
                 "  config_path = \"" + configPath + "\"\n" +
                 "  config_context = \"k8s-context\"\n" +
                 "  namespace = \"default\"\n" +
@@ -116,10 +100,10 @@ public class ServiceDeployFileServiceTest {
             TestFileServiceProvider.createContainerDeployFileService(vertx.fileSystem(), rootFolder, deployment);
         String result = service.getOutputsFileContent();
 
-        assertThat(result).isEqualTo("output \"deployment_data\" {\n" +
+        assertThat(result).isEqualTo("output \"service_deployment_1\" {\n" +
             "  value = {\n" +
-            "    service: module.deployment_33_22.service_info\n" +
-            "    pods: module.deployment_33_22.pods_info\n" +
+            "    service: module.deployment_1.service_info\n" +
+            "    pods: module.deployment_1.pods_info\n" +
             "  }\n" +
             "}");
     }

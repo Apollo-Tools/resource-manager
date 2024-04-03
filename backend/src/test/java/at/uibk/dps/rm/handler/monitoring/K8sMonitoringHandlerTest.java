@@ -22,25 +22,23 @@ import io.kubernetes.client.openapi.models.V1Namespace;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import io.vertx.core.impl.logging.Logger;
-import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.file.FileSystem;
+import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -96,9 +94,7 @@ public class K8sMonitoringHandlerTest {
     @Mock
     private ApiClient externalClient;
 
-    private static Logger logger;
-
-    private static MockedStatic<LoggerFactory> mockedLoggerFactory;
+    private static LogCaptor logCaptor;
 
     private ConfigDTO configDTO;
     private Path kubeconfigPath;
@@ -110,19 +106,16 @@ public class K8sMonitoringHandlerTest {
 
     @BeforeAll
     static void initAll() {
-        logger = mock(Logger.class);
-        mockedLoggerFactory = mockStatic(LoggerFactory.class);
-        mockedLoggerFactory.when(() -> LoggerFactory.getLogger(K8sMonitoringHandler.class)).thenReturn(logger);
+        logCaptor = LogCaptor.forClass(K8sMonitoringHandler.class);
     }
 
     @AfterAll
     static void cleanupAll() {
-        mockedLoggerFactory.close();
+        logCaptor.close();
     }
 
     @BeforeEach
     void initTest(Vertx vertx) {
-        clearInvocations(logger);
         JsonMapperConfig.configJsonMapper();
         configDTO = TestConfigProvider.getConfigDTO();
         spyVertx = spy(vertx);
@@ -154,6 +147,11 @@ public class K8sMonitoringHandlerTest {
         lenient().when(spyVertx.fileSystem()).thenReturn(fileSystem);
     }
 
+    @AfterEach
+    void cleanupEach() {
+        logCaptor.clearLogs();
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     public void startMonitoringLoopNoSecrets(boolean k8sDirExists, VertxTestContext testContext)
@@ -163,10 +161,8 @@ public class K8sMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(2)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor k8s resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Finished: monitor k8s resources");
+        assertThat(logCaptor.getInfoLogs())
+            .isEqualTo(List.of("Started: monitor k8s resources", "Finished: monitor k8s resources"));
         testContext.completeNow();
     }
 
@@ -185,17 +181,14 @@ public class K8sMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(latencyType.equals("down") ? 4 : 3)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor k8s resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Observe cluster: resource1");
+        List<String> expectedLogs = new ArrayList<>();
+        expectedLogs.add("Started: monitor k8s resources");
+        expectedLogs.add("Observe cluster: resource1");
         if (latencyType.equals("down")) {
-            assertThat(loggerInfo.getAllValues().get(2))
-                .isEqualTo("K8s localhost:0001 not reachable: not reachable");
-            assertThat(loggerInfo.getAllValues().get(3)).isEqualTo("Finished: monitor k8s resources");
-        } else {
-            assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Finished: monitor k8s resources");
+            expectedLogs.add("K8s localhost:0001 not reachable: not reachable");
         }
+        expectedLogs.add("Finished: monitor k8s resources");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(expectedLogs);
         testContext.completeNow();
     }
 
@@ -209,11 +202,8 @@ public class K8sMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(3)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor k8s resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Observe cluster: resource1");
-        assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Finished: monitor k8s resources");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor k8s resources",
+            "Observe cluster: resource1", "Finished: monitor k8s resources"));
         testContext.completeNow();
     }
 
@@ -228,14 +218,9 @@ public class K8sMonitoringHandlerTest {
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
         verify(spyVertx).setPeriodic(eq(0L), eq(300000L), any());
-        ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(3)).info(loggerInfo.capture());
-        assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Started: monitor k8s resources");
-        assertThat(loggerInfo.getAllValues().get(1)).isEqualTo("Observe cluster: resource1");
-        assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Finished: monitor k8s resources");
-        ArgumentCaptor<String> loggerError = ArgumentCaptor.forClass(String.class);
-        verify(logger, times(1)).error(loggerError.capture());
-        assertThat(loggerError.getAllValues().get(0)).isEqualTo("cluster resource1 is not registered");
+        assertThat(logCaptor.getInfoLogs()).isEqualTo(List.of("Started: monitor k8s resources",
+            "Observe cluster: resource1", "Finished: monitor k8s resources"));
+        assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("cluster resource1 is not registered"));
         testContext.completeNow();
     }
 
@@ -246,9 +231,7 @@ public class K8sMonitoringHandlerTest {
 
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
-        ArgumentCaptor<String> loggerError = ArgumentCaptor.forClass(String.class);
-        verify(logger).error(loggerError.capture());
-        assertThat(loggerError.getAllValues().get(0)).isEqualTo("error");
+        assertThat(logCaptor.getErrorLogs()).isEqualTo(List.of("error"));
         testContext.completeNow();
     }
 
