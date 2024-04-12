@@ -104,7 +104,6 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
                   return Promise.reject(new Error('SLOs are incomplete'));
                 }
                 if (value.map((slo) => {
-                  console.log(new Set(slo.value), slo.value.length);
                   return new Set(slo.value).size !== slo.value.length;
                 })
                     .filter((hasDuplicates) => hasDuplicates).length > 0) {

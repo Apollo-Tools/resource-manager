@@ -46,7 +46,6 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      console.log(values);
       if (values.isFile) {
         await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
             values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setError);

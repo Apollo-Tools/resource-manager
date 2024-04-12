@@ -121,7 +121,6 @@ export async function validateEnsemble(id, token, setValidationData, setError) {
       },
     });
     const data = await response.json();
-    console.log(data);
     setValidationData?.(data);
     return data.map((result) => result.is_valid).reduce((prev, current) => prev && current);
   } catch (error) {

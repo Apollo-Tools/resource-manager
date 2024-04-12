@@ -15,10 +15,6 @@ const AddLockResources = ({functionResources, serviceResources, lockResources, s
     setLockableResources(Array.from(resourceMap.values()).sort((a, b) => a - b));
   }, []);
 
-  useEffect(() => {
-    console.log(lockableResources);
-  }, [lockableResources]);
-
   const mapResourceDeploymentsToResourceMap = (resourceDeployments, resourceMap) => {
     Array.from(resourceDeployments.values()).flat()
         .filter((resource) => resource.is_lockable)

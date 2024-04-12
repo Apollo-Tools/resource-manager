@@ -7,6 +7,7 @@ import {listResourceTypes} from '../../../lib/api/ResourceTypeService';
 import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
 import {listPlatforms} from '../../../lib/api/PlatformService';
 import {listEnvironments} from '../../../lib/api/EnvironmentService';
+import BoolValueDisplay from '../BoolValueDisplay';
 
 
 const SloDisplay = ({slos}) => {
@@ -60,7 +61,10 @@ const SloDisplay = ({slos}) => {
       case 'environment':
         return environments.find((environment) => environment.environment_id === value)?.environment ?? value;
       default:
-        return value;
+        if (typeof value == 'boolean') {
+          return <BoolValueDisplay value={value} colored={false}/>;
+        }
+        return value.toString();
     }
   };
 
@@ -72,7 +76,7 @@ const SloDisplay = ({slos}) => {
             <span className="shadow-sky-300 shadow-md m-1 bg-sky-800 text-gray-200 w-full rounded-full inline-flex h-6 col-span-2 place-self-center">
               <div className="m-auto font-bold">{slo.name}</div>
             </span>
-            <span className="shadow-sky-300 shadow-md m-1 bg-secondary text-gray-200 w-full rounded-full inline-flex w-10 h-7 col-span-1 place-self-center">
+            <span className="shadow-sky-300 shadow-md m-1 bg-secondary text-gray-200 rounded-full inline-flex w-10 h-7 col-span-1 place-self-center">
               <div className="m-auto font-serif font-extrabold" >{slo.expression}</div>
             </span>
             <span className="m-1 w-full col-span-2 place-self-center">{slo.value.map(((value, idx2) => {
