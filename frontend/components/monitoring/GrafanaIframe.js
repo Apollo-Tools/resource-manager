@@ -26,7 +26,7 @@ GrafanaIframe.propTypes = {
   dashboardId: PropTypes.string.isRequired,
   parameters: PropTypes.arrayOf(
       PropTypes.shape({
-        key: PropTypes.number.isRequired,
+        key: PropTypes.string.isRequired,
         value: PropTypes.string.isRequired,
       }),
   ).isRequired,

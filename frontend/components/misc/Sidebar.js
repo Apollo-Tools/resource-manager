@@ -15,6 +15,7 @@ import {Layout, Menu} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
+import LoadingSpinner from './LoadingSpinner';
 const {Content, Footer, Sider} = Layout;
 
 export const siteTitle = 'Apollo Tools - Resource Manager';
@@ -23,9 +24,11 @@ const Sidebar = ({children}) => {
   const {payload, logout, checkTokenExpired} = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
+  const [initialised, setInitialised] = useState(false);
 
   useEffect(() => {
     setAuthenticated(!checkTokenExpired());
+    setInitialised(true);
   }, [children]);
 
   const onClickLogout = () => {
@@ -58,9 +61,14 @@ const Sidebar = ({children}) => {
     getItem(<div onClick={onClickLogout}><LogoutOutlined /><span>Logout</span></div>, '5'),
   ];
 
+  if (!initialised) {
+    return <Layout className="flex justify-center items-center h-screen">
+      <LoadingSpinner />
+    </Layout>;
+  }
+
   return (
-    <Layout className="min-h-screen"
-    >
+    <Layout className="min-h-screen">
       {authenticated &&
       <Sider collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
         <Menu theme="dark"
@@ -81,10 +89,8 @@ const Sidebar = ({children}) => {
         <Content className="md:ml-4">
           <main>{children}</main>
         </Content>
-        <Footer
-          className="text-center bg-transparent"
-        >
-          Apollo Tools ©2022
+        <Footer className="text-center bg-transparent">
+          Apollo Tools ©2024
         </Footer>
       </Layout>
     </Layout>
