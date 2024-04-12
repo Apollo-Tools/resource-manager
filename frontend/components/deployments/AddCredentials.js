@@ -35,7 +35,6 @@ const AddCredentials = ({functionResources, serviceResources, lockResources, nex
 
   const atLeastOneEdgeOrVMPresent = () => {
     for (const entry of functionResources.entries()) {
-      console.log(entry);
       const openfaasResources = entry[1].filter((resource) => ['openfaas', 'ec2']
           .includes(resource.platform.platform));
       if (openfaasResources.length > 0) {

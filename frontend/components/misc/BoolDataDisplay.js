@@ -17,7 +17,7 @@ const BoolDataDisplay = ({value, label, className}) => {
 };
 
 BoolDataDisplay.propTypes = {
-  value: PropTypes.node.isRequired,
+  value: PropTypes.bool.isRequired,
   label: PropTypes.string.isRequired,
   className: PropTypes.string,
 };

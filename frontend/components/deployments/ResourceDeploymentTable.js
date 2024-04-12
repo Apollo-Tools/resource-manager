@@ -20,7 +20,6 @@ const ResourceDeploymentTable = ({resourceDeployments, type}) => {
 
   const switchUrl = (functionDeploymentId) => {
     setFunctionDeployments(() => functionDeployments.map((functionDeployment) => {
-      console.log(functionDeployment);
       if (functionDeployment.resource_deployment_id === functionDeploymentId) {
         return {...functionDeployment, showDirectUrl: !functionDeployment.showDirectUrl};
       }

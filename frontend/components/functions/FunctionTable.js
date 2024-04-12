@@ -23,7 +23,6 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      console.log(allFunctions);
       if (allFunctions) {
         listAllFunctions(token, setFunctions, setError);
       } else {

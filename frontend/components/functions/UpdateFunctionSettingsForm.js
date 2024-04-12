@@ -24,10 +24,6 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
     }
   }, [func]);
 
-  useEffect(() => {
-    console.log(canEdit);
-  }, [canEdit]);
-
   // TODO: improve error handling
   useEffect(() => {
     if (error) {
@@ -129,7 +125,6 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
             className="col-span-6"
           >
             <Switch checkedChildren="true" unCheckedChildren="false" onChange={() => {
-              console.log('change');
               setModified(true);
             }}/>
           </Form.Item>
