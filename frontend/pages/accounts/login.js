@@ -21,12 +21,12 @@ const login = () => {
         await router.replace('/');
       }
     };
-    checkAuthenticationState();
+    void checkAuthenticationState();
   }, []);
 
   useEffect(() => {
     if (error) {
-      messageApi.open({
+      void messageApi.open({
         type: 'error',
         content: 'Invalid credentials!',
       });

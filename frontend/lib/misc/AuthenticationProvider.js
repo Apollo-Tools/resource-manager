@@ -37,6 +37,7 @@ export const AuthenticationProvider = ({children}) => {
       const decodedPayload = decodeTokenPayload(jwtToken);
       if (decodedPayload == null) {
         setAuthenticated(false);
+        setInitialised(() => true);
         return;
       }
       setToken(() => jwtToken);
@@ -44,8 +45,9 @@ export const AuthenticationProvider = ({children}) => {
         console.log('decode payload ' + decodedPayload);
         return decodedPayload;
       });
+    } else {
+      setInitialised(() => true);
     }
-    setInitialised(() => true);
   }, []);
 
   useEffect(() => {
@@ -60,6 +62,7 @@ export const AuthenticationProvider = ({children}) => {
         console.log('token changed: ' + token);
         return true;
       });
+      setInitialised(() => true);
     }
   }, [token]);
 
@@ -78,12 +81,15 @@ export const AuthenticationProvider = ({children}) => {
   }, [newToken]);
 
   useEffect(() => {
-    if (!isAuthenticated && !router.pathname.endsWith('/login') && !router.pathname.endsWith('/newAccount')) {
-      router.push('/accounts/login');
-    } else if (isAuthenticated) {
-      router.replace('/');
+    if (!isInitialised) {
+      return;
     }
-  }, [isAuthenticated]);
+    if (!isAuthenticated && !router.pathname.endsWith('/login') && !router.pathname.endsWith('/newAccount')) {
+      void router.push('/accounts/login');
+    } else if (isAuthenticated && router.pathname.endsWith('/login')) {
+      void router.replace('/');
+    }
+  }, [isAuthenticated, isInitialised]);
 
   const logout = () => {
     setToken('');
@@ -110,7 +116,8 @@ export const AuthenticationProvider = ({children}) => {
 
   return (
     <AuthContext.Provider value={ {payload, token, isAuthenticated, loginUser, logout, checkTokenExpired} }>
-      { isInitialised && children }
+      { isInitialised && isAuthenticated && !router.pathname.endsWith('/login') && children}
+      { isInitialised && !isAuthenticated && router.pathname.endsWith('/login') && children}
     </AuthContext.Provider>
   );
 };

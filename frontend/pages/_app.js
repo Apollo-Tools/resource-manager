@@ -21,7 +21,7 @@ const App = ({Component, pageProps: {...pageProps}}) => {
         }}
       >
         <AuthenticationProvider>
-          <Sidebar >
+          <Sidebar>
             <Component {...pageProps} />
           </Sidebar>
         </AuthenticationProvider>
