@@ -31,6 +31,7 @@ const NewDeployment = () => {
   const [error, setError] = useState(false);
   const [newDeployment, setNewDeployment] = useState();
   const [selectedEnsembleId, setSelectedEnsembleId] = useState();
+  const [alertingUrl, setAlertingUrl] = useState();
   const [messageApi, contextHolder] = message.useMessage();
   const [current, setCurrent] = useState(0);
   const [functionResources, setFunctionResources] = useState(new Map());
@@ -85,7 +86,13 @@ const NewDeployment = () => {
         <Typography.Title level={2}>New Deployment</Typography.Title>
         <Steps current={current} items={items} className="mb-1 p-5 shadow-lg bg-cyan-50"/>
         {current === 0 &&
-          <NewDeploymentEnsemble value={selectedEnsembleId} next={next} setSelectedEnsemble={setSelectedEnsembleId} />}
+          <NewDeploymentEnsemble
+            selectedEnsemble={selectedEnsembleId}
+            alertingUrl={alertingUrl}
+            next={next}
+            setSelectedEnsemble={setSelectedEnsembleId}
+            setAlertingUrl={setAlertingUrl}
+          />}
         {current === 1 &&
           <NewResourceDeployments
             functionResources={functionResources}
@@ -112,6 +119,8 @@ const NewDeployment = () => {
             serviceResources={serviceResources}
             functionResources={functionResources}
             lockResources={lockResources}
+            ensembleId={selectedEnsembleId}
+            alertingUrl={alertingUrl}
             next={next}
             prev={prev}
             onSubmit={setNewDeployment}

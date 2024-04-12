@@ -157,6 +157,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .switchIfEmpty(Single.error(new NotFoundException(Deployment.class)))
             .flatMap(deployment -> {
                 result.setDeploymentId(id);
+                result.setAlertNotificationUrl(deployment.getAlertNotificationUrl());
                 result.setCreatedAt(deployment.getCreatedAt());
                 result.setFinishedAt(deployment.getFinishedAt());
                 return repositoryProvider.getFunctionDeploymentRepository().findAllByDeploymentId(sm, id);

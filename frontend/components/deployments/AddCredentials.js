@@ -7,7 +7,8 @@ import PropTypes from 'prop-types';
 import NothingToSelectCard from './NothingToSelectCard';
 
 
-const AddCredentials = ({functionResources, serviceResources, lockResources, next, prev, onSubmit}) => {
+const AddCredentials = ({functionResources, serviceResources, lockResources, ensembleId, alertingUrl, next, prev,
+  onSubmit}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [error, setError] = useState(false);
@@ -77,6 +78,12 @@ const AddCredentials = ({functionResources, serviceResources, lockResources, nex
     requestBody.lock_resources = lockResources.map((resourceId) => {
       return {resource_id: resourceId};
     });
+    if (alertingUrl != null) {
+      requestBody.validation = {
+        ensemble_id: ensembleId,
+        alert_notification_url: alertingUrl,
+      };
+    }
     if (!checkTokenExpired()) {
       deployResources(requestBody, token, setNewDeployment, setError);
     }
@@ -151,6 +158,8 @@ AddCredentials.propTypes = {
   functionResources: PropTypes.instanceOf(Map).isRequired,
   serviceResources: PropTypes.instanceOf(Map).isRequired,
   lockResources: PropTypes.arrayOf(PropTypes.number).isRequired,
+  ensembleId: PropTypes.number,
+  alertingUrl: PropTypes.string,
   next: PropTypes.func.isRequired,
   prev: PropTypes.func.isRequired,
   onSubmit: PropTypes.func,
