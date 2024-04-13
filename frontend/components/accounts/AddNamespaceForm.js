@@ -7,16 +7,16 @@ import {addAccountNamespace} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 
 
-const AddNamespaceForm = ({accountId, existingNamespaces, setFinished}) => {
+const AddNamespaceForm = ({accountId, existingNamespaces, setFinished, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
   const [namespaces, setNamespaces] = useState();
   const [filteredNamespaces, setFilteredNamespaces] = useState();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listK8sNamespaces(token, setNamespaces, setError);
+      void listK8sNamespaces(token, setNamespaces, setLoading, setError);
     }
   }, []);
 
@@ -36,17 +36,9 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished}) => {
     }
   }, [namespaces, existingNamespaces]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      addAccountNamespace(accountId, values.namespace, token, setError)
+      addAccountNamespace(accountId, values.namespace, token, setLoading, setError)
           .then(() => setFinished(true))
           .then(() => form.resetFields());
     }
@@ -94,6 +86,7 @@ AddNamespaceForm.propTypes = {
   accountId: PropTypes.number.isRequired,
   existingNamespaces: PropTypes.arrayOf(PropTypes.object).isRequired,
   setFinished: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default AddNamespaceForm;

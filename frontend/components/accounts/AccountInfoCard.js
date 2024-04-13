@@ -11,39 +11,31 @@ import {getAccount, getMyAccount} from '../../lib/api/AccountService';
 import {listMyNamespaces, listNamespaces} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 
-const AccountInfoCard = ({isAdmin, accountId}) => {
+const AccountInfoCard = ({isAdmin, accountId, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [account, setAccount] = useState();
   const [accountNamespaces, setAccountNamespaces] = useState([]);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [isFinished, setFinished] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (isAdmin && accountId) {
-        getAccount(accountId, token, setAccount, setError);
-        listNamespaces(accountId, token, setAccountNamespaces, setError);
+        void getAccount(accountId, token, setAccount, setLoading, setError);
+        void listNamespaces(accountId, token, setAccountNamespaces, setLoading, setError);
       } else {
-        getMyAccount(token, setAccount, setError);
-        listMyNamespaces(token, setAccountNamespaces, setError);
+        void getMyAccount(token, setAccount, setLoading, setError);
+        void listMyNamespaces(token, setAccountNamespaces, setLoading, setError);
       }
     }
   }, []);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   useEffect(() => {
     if (isFinished) {
       if (isAdmin && accountId) {
-        listNamespaces(accountId, token, setAccountNamespaces, setError);
+        void listNamespaces(accountId, token, setAccountNamespaces, setLoading, setError);
       } else {
-        listMyNamespaces(token, setAccountNamespaces, setError);
+        void listMyNamespaces(token, setAccountNamespaces, setLoading, setError);
       }
       setFinished(false);
     }
@@ -61,7 +53,7 @@ const AccountInfoCard = ({isAdmin, accountId}) => {
       </Space>
       <div className="col-span-6">
         <DataDisplay label={'Reset Password'}>
-          <ResetPasswordForm />
+          <ResetPasswordForm setError={setError}/>
         </DataDisplay>
       </div>
       <Divider className="col-span-full"/>
@@ -72,6 +64,7 @@ const AccountInfoCard = ({isAdmin, accountId}) => {
             setFinished={setFinished}
             accountId={account.account_id}
             hasActions={isAdmin}
+            setError={setError}
           />
         </DataDisplay>
       </div>
@@ -81,6 +74,7 @@ const AccountInfoCard = ({isAdmin, accountId}) => {
             accountId={account.account_id}
             existingNamespaces={accountNamespaces}
             setFinished={setFinished}
+            setError={setError}
           />
         }
       </div>
@@ -91,6 +85,7 @@ const AccountInfoCard = ({isAdmin, accountId}) => {
 AccountInfoCard.propTypes = {
   isAdmin: PropTypes.bool.isRequired,
   accountId: PropTypes.number,
+  setError: PropTypes.func.isRequired,
 };
 
 export default AccountInfoCard;

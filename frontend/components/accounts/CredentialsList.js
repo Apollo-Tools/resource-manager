@@ -1,6 +1,6 @@
 import {Button, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {deleteCredentials} from '../../lib/api/CredentialsService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -9,24 +9,18 @@ import DateColumnRender from '../misc/DateColumnRender';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const CredentialsList = ({credentials, setCredentials}) => {
+const CredentialsList = ({credentials, setCredentials, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
+  const [isLoading, setLoading] = useState(false);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteCredentials(id, token, setError)
+      deleteCredentials(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setCredentials(credentials.filter((credential) => credential.credentials_id !== id));
+            } else {
+              setError(new Error('failed to delete entry'));
             }
           });
     }
@@ -71,8 +65,9 @@ const CredentialsList = ({credentials, setCredentials}) => {
 };
 
 CredentialsList.propTypes = {
-  credentials: PropTypes.arrayOf(PropTypes.object),
-  setCredentials: PropTypes.func,
+  credentials: PropTypes.arrayOf(PropTypes.object).isRequired,
+  setCredentials: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default CredentialsList;

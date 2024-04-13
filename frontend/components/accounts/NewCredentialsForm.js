@@ -7,33 +7,23 @@ import {createCredentials} from '../../lib/api/CredentialsService';
 import PropTypes from 'prop-types';
 
 
-const NewCredentialsForm = ({excludeProviders, setFinished}) => {
+const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [resourceProviders, setResourceProviders] = useState([]);
   const [newCredentials, setNewCredentials] = useState();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResourceProviders(token, setResourceProviders, setError);
+      void listResourceProviders(token, setResourceProviders, setError);
     }
   }, []);
 
   useEffect(() => {
-    if (error) {
-      messageApi.open({
-        type: 'error',
-        content: 'Something went wrong!',
-      });
-      setError(false);
-    }
-  }, [error]);
-
-  useEffect(() => {
     if (newCredentials) {
-      messageApi.open({
+      void messageApi.open({
         type: 'success',
         content: 'Credentials were created successfully!',
       });
@@ -44,7 +34,7 @@ const NewCredentialsForm = ({excludeProviders, setFinished}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createCredentials(values.resourceProvider, values.accessKey, values.secretAccessKey, values.sessionToken,
-          token, setNewCredentials, setError)
+          token, setNewCredentials, setLoading, setError)
           .then(() => form.resetFields());
     }
   };
@@ -123,6 +113,7 @@ const NewCredentialsForm = ({excludeProviders, setFinished}) => {
 NewCredentialsForm.propTypes = {
   excludeProviders: PropTypes.arrayOf(PropTypes.number),
   setFinished: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewCredentialsForm;

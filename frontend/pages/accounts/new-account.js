@@ -6,12 +6,13 @@ import Head from 'next/head';
 import Link from 'next/link';
 import {signUp} from '../../lib/api/AccountService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
+import PropTypes from 'prop-types';
 
 const {Title} = Typography;
 
-const NewAccount = () => {
+const NewAccount = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const [response, setResponse] = useState();
   const [form] = Form.useForm();
@@ -28,28 +29,12 @@ const NewAccount = () => {
         type: 'error',
         content: 'Signup failed!',
       });
-      setError(false);
     }
   }, [response]);
 
-
-  useEffect(() => {
-    if (error) {
-      let msg = 'Signup failed';
-      if (error.status === 409) {
-        msg = 'Username already exists';
-      }
-      messageApi.open({
-        type: 'error',
-        content: msg,
-      });
-      setError(null);
-    }
-  }, [error]);
-
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await signUp(values.username, values.password, token, setResponse, setError);
+      await signUp(values.username, values.password, token, setResponse, setLoading, setError);
     }
   };
 
@@ -143,6 +128,10 @@ const NewAccount = () => {
       </Form>
     </div>
   );
+};
+
+NewAccount.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewAccount;

@@ -99,7 +99,7 @@ export const AuthenticationProvider = ({children}) => {
   };
 
   const loginUser = (newToken) => {
-    setNewToken(newToken);
+    setNewToken(newToken.token);
   };
 
   const checkTokenExpired = () => {

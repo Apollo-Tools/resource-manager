@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/credentials`;
 
 /**
@@ -10,11 +11,12 @@ const API_ROUTE = `${env('API_URL')}/credentials`;
  * @param {string} sessionToken the session token
  * @param {string} token the access token
  * @param {function} setCredentials the function to set the created credentials
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
 export async function createCredentials(providerId, accessKey, secretAccessKey, sessionToken, token,
-    setCredentials, setError) {
-  try {
+    setCredentials, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -30,12 +32,9 @@ export async function createCredentials(providerId, accessKey, secretAccessKey, 
         session_token: sessionToken,
       }),
     });
-    const data = await response.json();
-    setCredentials(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setCredentials);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -43,22 +42,20 @@ export async function createCredentials(providerId, accessKey, secretAccessKey, 
  *
  * @param {string} token the access token
  * @param {function} setCredentials the function to set the retrieved credentials
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function listCredentials(token, setCredentials, setError) {
-  try {
+export async function listCredentials(token, setCredentials, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setCredentials(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setCredentials);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -66,11 +63,12 @@ export async function listCredentials(token, setCredentials, setError) {
  *
  * @param {string} id the id of the credentials
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteCredentials(id, token, setError) {
-  try {
+export async function deleteCredentials(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
@@ -78,8 +76,6 @@ export async function deleteCredentials(id, token, setError) {
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

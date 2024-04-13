@@ -3,24 +3,15 @@ import {LockOutlined} from '@ant-design/icons';
 import {Button, Form, Input, message, Space} from 'antd';
 import {changePassword} from '../../lib/api/AccountService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
+import PropTypes from 'prop-types';
 
-const ResetPasswordForm = () => {
+const ResetPasswordForm = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [form] = Form.useForm();
   const [response, setResponse] = useState();
   const [show, setShow] = useState(false);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-
-  useEffect(() => {
-    if (error) {
-      messageApi.open({
-        type: 'error',
-        content: 'Something went wrong!',
-      });
-      setError(false);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (response && response.ok) {
@@ -35,16 +26,12 @@ const ResetPasswordForm = () => {
         type: 'error',
         content: 'Old password was wrong!',
       });
-      setError(false);
     }
   }, [response]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await changePassword(values.oldPassword, values.newPassword, token, setResponse, setError)
-          .then(() => {
-            console.log(error);
-          });
+      await changePassword(values.oldPassword, values.newPassword, token, setResponse, setLoading, setError);
     }
   };
 
@@ -109,6 +96,10 @@ const ResetPasswordForm = () => {
       }
     </div>
   );
+};
+
+ResetPasswordForm.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default ResetPasswordForm;

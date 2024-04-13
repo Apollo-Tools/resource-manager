@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/accounts`;
 
 /**
@@ -6,46 +7,42 @@ const API_ROUTE = `${env('API_URL')}/accounts`;
  *
  * @param {string} token the access token
  * @param {function} setNamespaces the function to set the retrieved namespaces
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listMyNamespaces(token, setNamespaces, setError) {
-  try {
+export async function listMyNamespaces(token, setNamespaces, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/me/k8snamespaces`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setNamespaces(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setNamespaces);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
- * List all namespaces of the selected accountg.
+ * List all namespaces of the selected account.
  *
  * @param {number} accountId the id of the account
  * @param {string} token the access token
  * @param {function} setNamespaces the function to set the retrieved namespaces
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listNamespaces(accountId, token, setNamespaces, setError) {
-  try {
+export async function listNamespaces(accountId, token, setNamespaces, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}/k8snamespaces`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setNamespaces(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setNamespaces);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 
@@ -55,10 +52,11 @@ export async function listNamespaces(accountId, token, setNamespaces, setError) 
  * @param {number} accountId the id of the account
  * @param {any[]} namespaceId the id of the namespace
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function addAccountNamespace(accountId, namespaceId, token, setError) {
-  try {
+export async function addAccountNamespace(accountId, namespaceId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}/k8snamespaces/${namespaceId}`, {
       method: 'POST',
       headers: {
@@ -66,10 +64,8 @@ export async function addAccountNamespace(accountId, namespaceId, token, setErro
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 
@@ -79,11 +75,12 @@ export async function addAccountNamespace(accountId, namespaceId, token, setErro
  * @param {number} accountId the id of the account
  * @param {boolean} namespaceId the id of the namespace
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteNamespaceFromAccount(accountId, namespaceId, token, setError) {
-  try {
+export async function deleteNamespaceFromAccount(accountId, namespaceId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}/k8snamespaces/${namespaceId}`, {
       method: 'DELETE',
       headers: {
@@ -91,8 +88,6 @@ export async function deleteNamespaceFromAccount(accountId, namespaceId, token, 
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

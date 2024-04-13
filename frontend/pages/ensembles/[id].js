@@ -10,14 +10,15 @@ import {addResourceToEnsemble, deleteResourceFromEnsemble} from '../../lib/api/R
 import {listResourcesBySLOs} from '../../lib/api/ResourceService';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
+import PropTypes from 'prop-types';
 
 const {confirm} = Modal;
 
-const EnsembleDetails = () => {
+const EnsembleDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [ensemble, setEnsemble] = useState();
   const [selectedSegment, setSelectedSegment] = useState('Details');
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [resourceToAdd, setResourcesToAdd] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
   const [validatedResources, setValidatedResources] = useState([]);
@@ -27,14 +28,14 @@ const EnsembleDetails = () => {
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getEnsemble(id, token, setEnsemble, setError);
+      void getEnsemble(id, token, setEnsemble, setLoading, setError);
     }
   }, [id]);
 
   useEffect(() => {
     if (!checkTokenExpired() && ensemble!=null) {
-      listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setError);
-      validateEnsemble(id, token, setValidatedResources, setError);
+      void listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setError);
+      void validateEnsemble(id, token, setValidatedResources, setLoading, setError);
     }
   }, [ensemble]);
 
@@ -55,17 +56,9 @@ const EnsembleDetails = () => {
     }
   }, [resourceToAdd]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const reloadEnsemble = async () => {
     if (!checkTokenExpired()) {
-      await getEnsemble(id, token, setEnsemble, setError);
+      await getEnsemble(id, token, setEnsemble, setLoading, setError);
     }
   };
 
@@ -82,7 +75,7 @@ const EnsembleDetails = () => {
 
   const onAddEnsembleResource = (resourceId) => {
     if (!checkTokenExpired()) {
-      addResourceToEnsemble(id, resourceId, token, null, setError)
+      addResourceToEnsemble(id, resourceId, token, setError)
           .then(async (result) => {
             if (result) {
               await reloadEnsemble();
@@ -171,6 +164,10 @@ const EnsembleDetails = () => {
       </div>
     </>
   );
+};
+
+EnsembleDetails.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default EnsembleDetails;

@@ -1,18 +1,17 @@
 import {Button, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import Link from 'next/link';
 import {deleteNamespaceFromAccount} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
-
 const {Column} = Table;
 const {confirm} = Modal;
 
-const NamespaceTable = ({namespaces, setFinished, accountId, hasActions}) => {
+const NamespaceTable = ({namespaces, setFinished, accountId, hasActions, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
 
   const showDeleteConfirm = (id) => {
     confirm({
@@ -28,17 +27,9 @@ const NamespaceTable = ({namespaces, setFinished, accountId, hasActions}) => {
     });
   };
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onClickDelete = (namespaceId) => {
     if (!checkTokenExpired()) {
-      deleteNamespaceFromAccount(accountId, namespaceId, token, setError)
+      deleteNamespaceFromAccount(accountId, namespaceId, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setFinished(true);
@@ -89,6 +80,7 @@ NamespaceTable.propTypes = {
   setFinished: PropTypes.func,
   accountId: PropTypes.number.isRequired,
   hasActions: PropTypes.bool.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NamespaceTable;

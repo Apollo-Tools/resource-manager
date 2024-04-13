@@ -3,9 +3,10 @@ import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import {Typography} from 'antd';
 import NewEntityButton from '../../components/misc/NewEntityButton';
+import PropTypes from 'prop-types';
 
 
-const Accounts = () => {
+const Accounts = ({setError}) => {
   return <>
     <Head>
       <title>{`${siteTitle}: Accounts`}</title>
@@ -13,9 +14,13 @@ const Accounts = () => {
     <div className="default-card">
       <Typography.Title level={2}>Accounts</Typography.Title>
       <NewEntityButton name="Account"/>
-      <AccountTable />
+      <AccountTable setError={setError}/>
     </div>
   </>;
+};
+
+Accounts.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default Accounts;

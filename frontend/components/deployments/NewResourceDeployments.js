@@ -8,25 +8,17 @@ import PropTypes from 'prop-types';
 
 
 const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResources, serviceResources,
-  setServiceResources, next, prev}) => {
+  setServiceResources, next, prev, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [ensemble, setEnsemble] = useState();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [selected, setSelected] = useState(false);
   const [functionResourceChoice, setfunctionResourceChoice] = useState([]);
   const [serviceResourceChoice, setServiceResourceChoice] = useState([]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   useEffect(() => {
     if (ensembleId!= null && !checkTokenExpired()) {
-      getEnsemble(ensembleId, token, setEnsemble, setError);
+      void getEnsemble(ensembleId, token, setEnsemble, setLoading, setError);
       setSelected(checkAnySelected);
     }
   }, []);
@@ -95,6 +87,7 @@ NewResourceDeployments.propTypes = {
   setServiceResources: PropTypes.func.isRequired,
   next: PropTypes.func.isRequired,
   prev: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewResourceDeployments;

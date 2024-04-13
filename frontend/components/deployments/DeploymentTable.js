@@ -1,25 +1,28 @@
 import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import {Button, Table, Space, Tooltip} from 'antd';
+import {Button, Table, Space, Tooltip, App} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyDeployments} from '../../lib/api/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import DateColumnRender from '../misc/DateColumnRender';
+import {openNotification} from '../misc/ErrorNotification';
 
 const {Column} = Table;
 
 const DeploymentTable = () => {
+  const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [deployments, setDeployments] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listMyDeployments(token, setDeployments, setError);
+      void listMyDeployments(token, setDeployments, setLoading, setError);
     }
   }, []);
 
@@ -31,11 +34,10 @@ const DeploymentTable = () => {
           }));
   }, [deployments]);
 
-  // TODO: improve error handling
   useEffect(() => {
     if (error) {
-      console.log('Unexpected error');
-      setError(false);
+      openNotification(notification, error.message);
+      setError(null);
     }
   }, [error]);
 

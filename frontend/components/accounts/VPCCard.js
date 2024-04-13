@@ -4,17 +4,17 @@ import {useEffect, useState} from 'react';
 import {deleteVPC, listVPCs} from '../../lib/api/VPCService';
 import VPCTable from './VPCTable';
 import NewVPCForm from './NewVPCForm';
+import PropTypes from 'prop-types';
 
-const VPCCard = () => {
+const VPCCard = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [isFinished, setFinished] = useState(false);
   const [vpcs, setVPCs] = useState([]);
   const [excludeRegions, setExcludeRegions] = useState([]);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listVPCs(token, setVPCs, setError);
+      void listVPCs(token, setVPCs, setError);
     }
   }, []);
 
@@ -26,17 +26,9 @@ const VPCCard = () => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listVPCs(token, setVPCs, setError);
+      void listVPCs(token, setVPCs, setError);
     }
   }, [isFinished]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -57,5 +49,8 @@ const VPCCard = () => {
   </>;
 };
 
+VPCCard.propTypes = {
+  setError: PropTypes.func.isRequired,
+};
 
 export default VPCCard;
