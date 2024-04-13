@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
-import {Button, Form, Input, Typography, message} from 'antd';
+import {Button, Form, Input, Typography} from 'antd';
 import {getLogin} from '../../lib/api/AccountService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {siteTitle} from '../../components/misc/Sidebar';
@@ -9,10 +9,9 @@ import {useRouter} from 'next/router';
 
 const {Title} = Typography;
 
-const login = () => {
+const login = ({setError}) => {
   const {isAuthenticated, loginUser} = useAuth();
-  const [error, setError] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
+  const [isLoading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,18 +23,8 @@ const login = () => {
     void checkAuthenticationState();
   }, []);
 
-  useEffect(() => {
-    if (error) {
-      void messageApi.open({
-        type: 'error',
-        content: 'Invalid credentials!',
-      });
-      setError(false);
-    }
-  }, [error]);
-
   const onFinish = async (values) => {
-    await getLogin(values.username, values.password, loginUser, setError);
+    await getLogin(values.username, values.password, loginUser, setLoading, setError);
   };
 
   const onFinishFailed = (errorInfo) => {
@@ -47,7 +36,6 @@ const login = () => {
       <Head>
         <title>{`${siteTitle}: Login`}</title>
       </Head>
-      {contextHolder}
       <div className="mb-6">
         <Title level={3} className="text-center m-0">Resource Manager</Title>
         <Title level={4} className="text-center m-0">Apollo Tools</Title>

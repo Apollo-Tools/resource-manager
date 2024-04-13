@@ -14,12 +14,13 @@ import {listLockedResources} from '../../lib/api/ResourceService';
 import ResourceTable from '../../components/resources/ResourceTable';
 import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
 import DeploymentDashboards from '../../components/monitoring/DeploymentDashboards';
+import PropTypes from 'prop-types';
 
 const {confirm} = Modal;
 
-const DeploymentDetails = () => {
+const DeploymentDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [deployment, setDeployment] = useState();
   const [logs, setLogs] = useState([]);
   const [pollingDelay, setPollingDelay] = useState();
@@ -38,17 +39,9 @@ const DeploymentDetails = () => {
 
   useEffect(() => {
     if (!checkTokenExpired() && id !== undefined) {
-      refreshDeployment();
+      void refreshDeployment(setError);
     }
   }, [id]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('action failed');
-      setError(false);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (deployment != null) {
@@ -65,14 +58,14 @@ const DeploymentDetails = () => {
 
   useInterval(async () => {
     if (!checkTokenExpired() && deployment != null) {
-      await refreshDeployment();
+      await refreshDeployment(setError);
     }
   }, pollingDelay);
 
-  const refreshDeployment = async () => {
+  const refreshDeployment = async ({setError}) => {
     setPollingDelay(null);
-    await getDeployment(id, token, setDeployment, setError);
-    await listDeploymentLogs(id, token, setLogs, setError);
+    await getDeployment(id, token, setDeployment, setLoading, setError);
+    await listDeploymentLogs(id, token, setLogs, setLoading, setError);
     await listLockedResources(id, token, setLockedResources, setError);
   };
 
@@ -113,8 +106,8 @@ const DeploymentDetails = () => {
 
   const onClickCancel = async (id) => {
     if (!checkTokenExpired()) {
-      await cancelDeployment(id, token, setError)
-          .then(() => refreshDeployment());
+      await cancelDeployment(id, token, setLoading, setError)
+          .then(() => refreshDeployment(setError));
     }
   };
 
@@ -126,8 +119,8 @@ const DeploymentDetails = () => {
       okText: 'Yes',
       okType: 'danger',
       cancelText: 'No',
-      onOk() {
-        onClickCancel(id);
+      async onOk() {
+        await onClickCancel(id);
       },
     });
   };
@@ -193,6 +186,10 @@ const DeploymentDetails = () => {
       </div>
     </>
   );
+};
+
+DeploymentDetails.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default DeploymentDetails;

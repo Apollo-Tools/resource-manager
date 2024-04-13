@@ -21,7 +21,6 @@ const NewDeploymentEnsemble = ({selectedEnsemble, alertingUrl, next, setSelected
   };
 
   const onFinish = async (values) => {
-    console.log(values);
     if (values.enableAlerting) {
       setAlertingUrl(values.alertNotificationUrl);
     } else {
@@ -40,7 +39,6 @@ const NewDeploymentEnsemble = ({selectedEnsemble, alertingUrl, next, setSelected
     }
     try {
       new URL(value);
-      console.log(value);
       return Promise.resolve();
     } catch (error) {
       return Promise.reject(new Error('Please enter a valid URL'));

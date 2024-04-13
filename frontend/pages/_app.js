@@ -1,14 +1,27 @@
 import '../styles/globals.css';
 import {AuthenticationProvider} from '../lib/misc/AuthenticationProvider';
-import {ConfigProvider} from 'antd';
+import {ConfigProvider, App as AntApp, notification} from 'antd';
 import Sidebar from '../components/misc/Sidebar';
 import PropTypes from 'prop-types';
 import Script from 'next/script';
+import {useEffect, useState} from 'react';
+import {openNotification} from '../components/misc/ErrorNotification';
 
 
 const App = ({Component, pageProps: {...pageProps}}) => {
+  const [api, contextHolder] = notification.useNotification();
+  const [error, setError] = useState();
+
+  useEffect(() => {
+    if (error) {
+      openNotification(api, error.message);
+      setError(null);
+    }
+  }, [error]);
+
   return (
-    <>
+    <AntApp>
+      {contextHolder}
       <Script src="/__ENV.js" strategy="beforeInteractive" />
       <ConfigProvider
         theme={{
@@ -22,11 +35,11 @@ const App = ({Component, pageProps: {...pageProps}}) => {
       >
         <AuthenticationProvider>
           <Sidebar>
-            <Component {...pageProps} />
+            <Component {...pageProps} error={error} setError={setError}/>
           </Sidebar>
         </AuthenticationProvider>
       </ConfigProvider>
-    </>
+    </AntApp>
   );
 };
 

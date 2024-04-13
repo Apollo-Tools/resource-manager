@@ -8,6 +8,7 @@ import AddCredentials from '../../components/deployments/AddCredentials';
 import {GroupOutlined, SmileOutlined, UndoOutlined} from '@ant-design/icons';
 import Link from 'next/link';
 import AddLockResources from '../../components/deployments/AddLockResources';
+import PropTypes from 'prop-types';
 
 const steps = [
   {
@@ -27,8 +28,7 @@ const steps = [
   },
 ];
 
-const NewDeployment = () => {
-  const [error, setError] = useState(false);
+const NewDeployment = ({setError}) => {
   const [newDeployment, setNewDeployment] = useState();
   const [selectedEnsembleId, setSelectedEnsembleId] = useState();
   const [alertingUrl, setAlertingUrl] = useState();
@@ -59,14 +59,6 @@ const NewDeployment = () => {
       });
     }
   }, [newDeployment]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onClickRestart = () => {
     setCurrent(0);
@@ -102,6 +94,7 @@ const NewDeployment = () => {
             setServiceResources={setServiceResources}
             next={next}
             prev={prev}
+            setError={setError}
           />
         }
         {current === 2 &&
@@ -124,6 +117,7 @@ const NewDeployment = () => {
             next={next}
             prev={prev}
             onSubmit={setNewDeployment}
+            setError={setError}
           />
         }
         {current === 4 &&
@@ -142,6 +136,10 @@ const NewDeployment = () => {
       </div>
     </>
   );
+};
+
+NewDeployment.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewDeployment;

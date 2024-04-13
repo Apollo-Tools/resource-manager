@@ -12,36 +12,29 @@ import Link from 'next/link';
 import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
 import DateColumnRender from '../misc/DateColumnRender';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const AccountTable = () => {
+const AccountTable = ({setError}) => {
   const {payload, token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [accounts, setAccounts] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listAccounts(token, setAccounts, setError);
+      void listAccounts(token, setAccounts, setLoading, setError);
     }
   }, []);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onClickLock = (id, activityLevel) => {
     if (!checkTokenExpired()) {
       let updateActivity;
       if (activityLevel) {
-        updateActivity = unlockUser(id, token, setError);
+        updateActivity = unlockUser(id, token, setLoading, setError);
       } else {
-        updateActivity = lockUser(id, token, setError);
+        updateActivity = lockUser(id, token, setLoading, setError);
       }
       updateActivity
           .then((result) => {
@@ -137,6 +130,7 @@ const AccountTable = () => {
 };
 
 AccountTable.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default AccountTable;

@@ -14,31 +14,25 @@ import DateColumnRender from '../misc/DateColumnRender';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const EnsembleTable = ({rowSelection}) => {
+const EnsembleTable = ({rowSelection, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [ensembles, setEnsembles] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listEnsembles(token, setEnsembles, setError);
+      void listEnsembles(token, setEnsembles, setLoading, setError);
     }
   }, []);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteEnsemble(id, token, setError)
+      deleteEnsemble(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setEnsembles(ensembles.filter((ensemble) => ensemble.ensemble_id !== id));
+            } else {
+              setError(new Error('failed to delete entry'));
             }
           });
     }
@@ -46,7 +40,7 @@ const EnsembleTable = ({rowSelection}) => {
 
   const onClickValidate = (id) => {
     if (!checkTokenExpired()) {
-      validateEnsemble(id, token, null, setError)
+      validateEnsemble(id, token, null, setLoading, setError)
           .then((result) => {
             setEnsembles((prevEnsembles) => {
               return prevEnsembles.map((ensemble) => {
@@ -139,6 +133,7 @@ const EnsembleTable = ({rowSelection}) => {
 
 EnsembleTable.propTypes = {
   rowSelection: PropTypes.object,
+  setError: PropTypes.func.isRequired,
 };
 
 export default EnsembleTable;

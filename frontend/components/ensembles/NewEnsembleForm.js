@@ -1,5 +1,5 @@
 import {Button, Form, Input, message} from 'antd';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import SLOSelection from '../misc/slos/SLOSelection';
@@ -9,20 +9,12 @@ import ResourceTableFormItem from '../resources/ResourceTableFormItem';
 import {createEnsemble} from '../../lib/api/EnsembleService';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 
-const NewEnsembleForm = ({setNewEnsemble}) => {
+const NewEnsembleForm = ({setNewEnsemble, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [resources, setResources] = useState([]);
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
@@ -33,7 +25,8 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
           value: slo.value,
         };
       });
-      await createEnsemble(values.name, slos, values.resources, token, setNewEnsemble, setError);
+      await createEnsemble(values.name, slos, values.resources, token, setNewEnsemble, setLoading,
+          setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -52,7 +45,7 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
             };
           });
       form.resetFields(['resources']);
-      listResourcesBySLOs(mapped, token, setResources, setError);
+      void listResourcesBySLOs(mapped, token, setResources, setError);
     } else {
       messageApi.open({
         type: 'error',
@@ -147,6 +140,7 @@ const NewEnsembleForm = ({setNewEnsemble}) => {
 
 NewEnsembleForm.propTypes = {
   setNewEnsemble: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewEnsembleForm;

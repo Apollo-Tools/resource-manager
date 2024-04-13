@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/accounts`;
 
 /**
@@ -7,10 +8,11 @@ const API_ROUTE = `${env('API_URL')}/accounts`;
  * @param {string} username the username
  * @param {string} password the password
  * @param {function} setToken the function to set the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function getLogin(username, password, setToken, setError) {
-  try {
+export async function getLogin(username, password, setToken, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/login`, {
       method: 'POST',
       headers: {
@@ -21,12 +23,9 @@ export async function getLogin(username, password, setToken, setError) {
         password: password,
       }),
     });
-    const data = await response.json();
-    setToken(data.token);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setToken);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -36,10 +35,11 @@ export async function getLogin(username, password, setToken, setError) {
  * @param {string} newPassword the new password
  * @param {string} token the access token
  * @param {function} setResponse the function to set the response
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function changePassword(oldPassword, newPassword, token, setResponse, setError) {
-  try {
+export async function changePassword(oldPassword, newPassword, token, setResponse, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/me`, {
       method: 'PATCH',
       headers: {
@@ -52,10 +52,8 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
       }),
     });
     setResponse(response);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -64,22 +62,20 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
  * @param {accountId} accountId the id of the account
  * @param {string} token the access token
  * @param {function} setAccount the function to set the account details
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function getAccount(accountId, token, setAccount, setError) {
-  try {
+export async function getAccount(accountId, token, setAccount, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setAccount(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setAccount);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -87,22 +83,20 @@ export async function getAccount(accountId, token, setAccount, setError) {
  *
  * @param {string} token the access token
  * @param {function} setAccount the function to set the account details
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function getMyAccount(token, setAccount, setError) {
-  try {
+export async function getMyAccount(token, setAccount, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/me`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setAccount(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setAccount);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -112,10 +106,11 @@ export async function getMyAccount(token, setAccount, setError) {
  * @param {string} password the password
  * @param {string} token the access token
  * @param {function} setResponse the function to set the response
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function signUp(username, password, token, setResponse, setError) {
-  try {
+export async function signUp(username, password, token, setResponse, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/signup`, {
       method: 'POST',
       headers: {
@@ -128,10 +123,8 @@ export async function signUp(username, password, token, setResponse, setError) {
       }),
     });
     setResponse(response);
-  } catch (error) {
-    setError(error);
-    console.log(error);
-  }
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -139,22 +132,20 @@ export async function signUp(username, password, token, setResponse, setError) {
  *
  * @param {string} token the access token
  * @param {function} setAccounts the function to set the retrieved accounts
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listAccounts(token, setAccounts, setError) {
-  try {
+export async function listAccounts(token, setAccounts, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setAccounts(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setAccounts);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -162,11 +153,12 @@ export async function listAccounts(token, setAccounts, setError) {
  *
  * @param {number} accountId the id of the account
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  * @return {boolean} true if the request was successful else false
  */
-export async function lockUser(accountId, token, setError) {
-  try {
+export async function lockUser(accountId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}/lock`, {
       method: 'POST',
       headers: {
@@ -174,10 +166,8 @@ export async function lockUser(accountId, token, setError) {
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -185,11 +175,12 @@ export async function lockUser(accountId, token, setError) {
  *
  * @param {number} accountId the id of the account
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  * @return {boolean} true if the request was successful else false
  */
-export async function unlockUser(accountId, token, setError) {
-  try {
+export async function unlockUser(accountId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${accountId}/unlock`, {
       method: 'POST',
       headers: {
@@ -197,8 +188,6 @@ export async function unlockUser(accountId, token, setError) {
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

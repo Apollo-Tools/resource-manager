@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/ensembles`;
 
 /**
@@ -9,10 +10,11 @@ const API_ROUTE = `${env('API_URL')}/ensembles`;
  * @param {list} resources the resources
  * @param {string} token the access token
  * @param {function} setEnsemble the function to set the created ensemble
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function createEnsemble(name, slos, resources, token, setEnsemble, setError) {
-  try {
+export async function createEnsemble(name, slos, resources, token, setEnsemble, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -25,12 +27,9 @@ export async function createEnsemble(name, slos, resources, token, setEnsemble, 
         resources: resources,
       }),
     });
-    const data = await response.json();
-    setEnsemble(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setEnsemble);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -38,22 +37,20 @@ export async function createEnsemble(name, slos, resources, token, setEnsemble, 
  *
  * @param {string} token the access token
  * @param {function} setEnsembles the function to set the retrieved ensembles
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function listEnsembles(token, setEnsembles, setError) {
-  try {
+export async function listEnsembles(token, setEnsembles, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(API_ROUTE, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setEnsembles(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setEnsembles);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -62,22 +59,20 @@ export async function listEnsembles(token, setEnsembles, setError) {
  * @param {number} id the id of the ensemble
  * @param {string} token the access token
  * @param {function} setEnsemble the function to set the retrieved ensemble
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function getEnsemble(id, token, setEnsemble, setError) {
-  try {
+export async function getEnsemble(id, token, setEnsemble, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setEnsemble(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setEnsemble);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -85,11 +80,12 @@ export async function getEnsemble(id, token, setEnsemble, setError) {
  *
  * @param {number} id the id of the ensemble
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteEnsemble(id, token, setError) {
-  try {
+export async function deleteEnsemble(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
@@ -97,10 +93,8 @@ export async function deleteEnsemble(id, token, setError) {
       },
     });
     return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -109,22 +103,22 @@ export async function deleteEnsemble(id, token, setError) {
  * @param {number} id the id of the ensemble
  * @param {string} token the access token
  * @param {function} setValidationData the function to set the validation data
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<List<*>>} a list of that contains a validation entry for each resource
  */
-export async function validateEnsemble(id, token, setValidationData, setError) {
-  try {
+export async function validateEnsemble(id, token, setValidationData, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}/validate`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+    await checkResponseOk(response);
     const data = await response.json();
     setValidationData?.(data);
     return data.map((result) => result.is_valid).reduce((prev, current) => prev && current);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
