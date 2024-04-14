@@ -1,5 +1,5 @@
 import env from '@beam-australia/react-env';
-import {handleApiCall, setResult} from './ApiHandler';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/accounts`;
 
 /**
@@ -63,7 +63,7 @@ export async function addAccountNamespace(accountId, namespaceId, token, setLoad
         'Authorization': `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
   return await handleApiCall(apiCall, setLoading, setError);
 }
@@ -87,7 +87,7 @@ export async function deleteNamespaceFromAccount(accountId, namespaceId, token, 
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
   return await handleApiCall(apiCall, setLoading, setError);
 }

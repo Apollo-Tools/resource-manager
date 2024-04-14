@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import PropTypes from 'prop-types';
 import {Space} from 'antd';
 import SloDisplay from '../misc/slos/SloDisplay';
@@ -6,9 +6,7 @@ import DateFormatter from '../misc/DateFormatter';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DataDisplay from '../misc/DataDisplay';
 
-const EnsembleDetailsCard = ({ensemble}) => {
-  const [error, setError] = useState(false);
-
+const EnsembleDetailsCard = ({ensemble, setError}) => {
   useEffect(() => {
     if (ensemble != null && Object.hasOwn(ensemble, 'runtime')) {
     }
@@ -19,18 +17,10 @@ const EnsembleDetailsCard = ({ensemble}) => {
     }
   }, [ensemble]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   return (<Space direction="vertical" className="w-full" size='large'>
     <TextDataDisplay value={ensemble.name} label="Name" />
     <DataDisplay label="Service Level Objectives">
-      <SloDisplay slos={ensemble.slos} />
+      <SloDisplay slos={ensemble.slos} setError={setError} />
     </DataDisplay>
     <TextDataDisplay value={<DateFormatter dateTimestamp={ensemble.created_at} includeTime/>} label="Created at" />
     <TextDataDisplay value={<DateFormatter dateTimestamp={ensemble.updated_at} includeTime/>} label="Updated at" />
@@ -40,6 +30,7 @@ const EnsembleDetailsCard = ({ensemble}) => {
 
 EnsembleDetailsCard.propTypes = {
   ensemble: PropTypes.object.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default EnsembleDetailsCard;

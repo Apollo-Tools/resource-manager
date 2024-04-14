@@ -2,9 +2,10 @@ import {useState} from 'react';
 import NewResourceForm from '../../components/resources/NewResourceForm';
 import AddMetricValuesForm from '../../components/metrics/AddMetricValuesForm';
 import NewEntityContainer from '../../components/misc/NewEntityContainer';
+import PropTypes from 'prop-types';
 
 
-const NewResource = () => {
+const NewResource = ({setError}) => {
   const [newResource, setNewResource] = useState(null);
   const [isFinished, setFinished] = useState(false);
 
@@ -22,11 +23,15 @@ const NewResource = () => {
         rootPath="/resources/resources"
       >
         {newResource ?
-        <AddMetricValuesForm resource={newResource} setFinished={setFinished} isNewResource />:
-        <NewResourceForm setNewResource={setNewResource} />}
+        <AddMetricValuesForm resource={newResource} setFinished={setFinished} isNewResource setError={setError} />:
+        <NewResourceForm setNewResource={setNewResource} setError={setError}/>}
       </NewEntityContainer>
     </>
   );
+};
+
+NewResource.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewResource;

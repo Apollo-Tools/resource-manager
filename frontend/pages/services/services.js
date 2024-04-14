@@ -5,8 +5,9 @@ import {Divider, Segmented, Switch, Typography} from 'antd';
 import ServiceTable from '../../components/services/ServiceTable';
 import NewEntityButton from '../../components/misc/NewEntityButton';
 import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable';
+import PropTypes from 'prop-types';
 
-const Services = () => {
+const Services = ({setError}) => {
   const [selectedSegment, setSelectedSegment] = useState('Services');
   const segments = ['Services', 'Types'];
   const [showAllServices, setShowAllServices] = useState(false);
@@ -34,17 +35,21 @@ const Services = () => {
                 />
               </div>
               <div className="col-span-full">
-                <ServiceTable allServices={showAllServices}/>
+                <ServiceTable allServices={showAllServices} setError={setError} />
               </div>
             </div> :
           <>
             <NewEntityButton name="Service Type" path={`/services/new-type`}/>
-            <ArtifactTypeTable artifact="service" />
+            <ArtifactTypeTable artifact="service" setError={setError} />
           </>
         }
       </div>
     </>
   );
+};
+
+Services.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default Services;

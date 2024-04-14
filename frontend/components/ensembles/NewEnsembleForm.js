@@ -1,4 +1,4 @@
-import {Button, Form, Input, message} from 'antd';
+import {App, Button, Form, Input} from 'antd';
 import {useState} from 'react';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
@@ -8,13 +8,14 @@ import {SearchOutlined} from '@ant-design/icons';
 import ResourceTableFormItem from '../resources/ResourceTableFormItem';
 import {createEnsemble} from '../../lib/api/EnsembleService';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
+import {notificationProvider} from '../../lib/misc/NotificationProvider';
 
 const NewEnsembleForm = ({setNewEnsemble, setError}) => {
+  const {notification} = App.useApp();
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [resources, setResources] = useState([]);
   const [isLoading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
@@ -45,18 +46,14 @@ const NewEnsembleForm = ({setNewEnsemble, setError}) => {
             };
           });
       form.resetFields(['resources']);
-      void listResourcesBySLOs(mapped, token, setResources, setError);
+      void listResourcesBySLOs(mapped, token, setResources, setLoading, setError);
     } else {
-      messageApi.open({
-        type: 'error',
-        content: 'Service level objective input not complete!',
-      });
+      notificationProvider(notification, 'Service level objective input not complete!');
     }
   };
 
   return (
     <>
-      {contextHolder}
       <Form
         name="newFunctionForm"
         form={form}
@@ -108,7 +105,7 @@ const NewEnsembleForm = ({setNewEnsemble, setError}) => {
             }),
           ]}
         >
-          <SLOSelection />
+          <SLOSelection setError={setError}/>
         </Form.Item>
         <Button type="default" icon={<SearchOutlined />} onClick={onClickFindResourcesBySLOs} className="mb-2">
           Find resources

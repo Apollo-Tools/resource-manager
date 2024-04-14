@@ -13,9 +13,10 @@ import {siteTitle} from '../../components/misc/Sidebar';
 import {listPlatformMetrics} from '../../lib/api/PlatformMetricService';
 import {LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
 import {ICON_GREEN, ICON_RED} from '../../components/misc/Constants';
+import PropTypes from 'prop-types';
 
 // TODO: add way to update values
-const ResourceDetails = () => {
+const ResourceDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [resource, setResource] = useState();
   const [selectedSegment, setSelectedSegment] = useState('Details');
@@ -24,22 +25,22 @@ const ResourceDetails = () => {
   const [subresources, setSubresources] = useState([]);
   const [platformMetrics, setPlatformMetrics] = useState([]);
   const [isFinished, setFinished] = useState(false);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [segments, setSegments] = useState([]);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getResource(id, token, setResource, setError);
-      listSubresources(id, token, setSubresources, setError);
-      listResourceMetrics(id, token, setMetricValues, setError);
+      void getResource(id, token, setResource, setLoading, setError);
+      void listSubresources(id, token, setSubresources, setLoading, setError);
+      void listResourceMetrics(id, token, setMetricValues, setLoading, setError);
     }
   }, [id]);
 
   useEffect(() => {
     if (!checkTokenExpired() && resource != null) {
-      listPlatformMetrics(resource.platform.platform_id, token, setPlatformMetrics, setError);
+      void listPlatformMetrics(resource.platform.platform_id, token, setPlatformMetrics, setLoading, setError);
     }
   }, [resource]);
 
@@ -75,18 +76,10 @@ const ResourceDetails = () => {
 
   useEffect(() => {
     if (isFinished) {
-      listResourceMetrics(id, token, setMetricValues, setError);
+      void listResourceMetrics(id, token, setMetricValues, setLoading, setError);
       setFinished(false);
     }
   }, [isFinished]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const mapValuesToValueField = () => {
     setMappedMetricValues(metricValues.map((metricValue) => {
@@ -136,7 +129,7 @@ const ResourceDetails = () => {
         <Divider />
         {
           selectedSegment === 'Details' && resource != null &&
-          <ResourceDetailsCard resource={resource} setResource={setResource}/>
+          <ResourceDetailsCard resource={resource} setResource={setResource} setError={setError}/>
         }
         {selectedSegment === 'Metric Values' && resource != null && (
           <>
@@ -145,6 +138,7 @@ const ResourceDetails = () => {
                 resourceId={id}
                 metricValues={mappedMetricValues}
                 setMetricValues={setMappedMetricValues}
+                setError={setError}
               />
             </div>
             <Divider />
@@ -152,6 +146,7 @@ const ResourceDetails = () => {
               resource={resource}
               excludeMetricIds={mappedMetricValues.map((metricValue) => metricValue.metric.metric_id)}
               setFinished={setFinished}
+              setError={setError}
             />
           </>)
         }
@@ -165,6 +160,10 @@ const ResourceDetails = () => {
       </div>
     </>
   );
+};
+
+ResourceDetails.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default ResourceDetails;

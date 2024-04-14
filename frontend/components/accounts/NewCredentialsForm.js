@@ -1,47 +1,42 @@
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {Button, Form, Input, message, Select} from 'antd';
+import {App, Button, Form, Input, Select} from 'antd';
 import {listResourceProviders} from '../../lib/api/ResourceProviderService';
 import {LockOutlined} from '@ant-design/icons';
 import {createCredentials} from '../../lib/api/CredentialsService';
 import PropTypes from 'prop-types';
+import {successNotification} from '../../lib/misc/NotificationProvider';
 
 
 const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
+  const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [resourceProviders, setResourceProviders] = useState([]);
-  const [newCredentials, setNewCredentials] = useState();
   const [isLoading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listResourceProviders(token, setResourceProviders, setError);
+      void listResourceProviders(token, setResourceProviders, setLoading, setError);
     }
   }, []);
-
-  useEffect(() => {
-    if (newCredentials) {
-      void messageApi.open({
-        type: 'success',
-        content: 'Credentials were created successfully!',
-      });
-      setFinished(true);
-    }
-  }, [newCredentials]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createCredentials(values.resourceProvider, values.accessKey, values.secretAccessKey, values.sessionToken,
-          token, setNewCredentials, setLoading, setError)
-          .then(() => form.resetFields());
+          token, setLoading, setError)
+          .then((result) => {
+            if (result) {
+              successNotification(notification, 'Credentials were created successfully!');
+              setFinished(true);
+              form.resetFields();
+            }
+          });
     }
   };
 
   return (
     <>
-      {contextHolder}
       <Form
         name="credentialsForm"
         onFinish={onFinish}

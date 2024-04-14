@@ -1,33 +1,23 @@
 import {useEffect, useState} from 'react';
-import {App, Button, Form, Input} from 'antd';
+import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {deployResources} from '../../lib/api/DeploymentService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import NothingToSelectCard from './NothingToSelectCard';
-import {openNotification} from '../misc/ErrorNotification';
 
 
 const AddCredentials = ({functionResources, serviceResources, lockResources, ensembleId, alertingUrl, next, prev,
-  onSubmit}) => {
-  const {notification} = App.useApp();
+  onSubmit, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isLoading, setLoading] = useState(false);
-  const [error, setError] = useState();
   const [needsDockerCreds, setNeedsDockerCreds] = useState(false);
   const [newDeployment, setNewDeployment] = useState();
 
   useEffect(() => {
     atLeastOneEdgeOrVMPresent();
   }, []);
-
-  useEffect(() => {
-    if (error) {
-      openNotification(notification, error.message);
-      setError(null);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (newDeployment != null) {
@@ -165,6 +155,7 @@ AddCredentials.propTypes = {
   next: PropTypes.func.isRequired,
   prev: PropTypes.func.isRequired,
   onSubmit: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default AddCredentials;

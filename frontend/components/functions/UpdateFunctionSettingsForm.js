@@ -10,10 +10,10 @@ import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 
 
-const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
+const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
   const [form] = Form.useForm();
   const {payload, token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
   const [canEdit, setCanEdit] = useState(false);
   const [isModified, setModified] = useState(false);
 
@@ -23,14 +23,6 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
       resetFields();
     }
   }, [func]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const resetFields = () => {
     form.setFieldsValue({
@@ -45,7 +37,8 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await updateFunctionSettings(func.function_id, values.code, values.timeout, values.memorySize, values.isPublic,
-          token, setError).then(() => reloadFunction().then(() => setModified(false)));
+          token, setLoading, setError)
+          .then(() => reloadFunction().then(() => setModified(false)));
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -168,6 +161,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction}) => {
 UpdateFunctionSettingsForm.propTypes = {
   func: PropTypes.object.isRequired,
   reloadFunction: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default UpdateFunctionSettingsForm;

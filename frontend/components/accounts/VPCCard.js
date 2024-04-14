@@ -9,12 +9,13 @@ import PropTypes from 'prop-types';
 const VPCCard = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [isFinished, setFinished] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [vpcs, setVPCs] = useState([]);
   const [excludeRegions, setExcludeRegions] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listVPCs(token, setVPCs, setError);
+      void listVPCs(token, setVPCs, setLoading, setError);
     }
   }, []);
 
@@ -26,13 +27,13 @@ const VPCCard = ({setError}) => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listVPCs(token, setVPCs, setError);
+      void listVPCs(token, setVPCs, setLoading, setError);
     }
   }, [isFinished]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteVPC(id, token, setError)
+      deleteVPC(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setVPCs((prevVPCs) => prevVPCs.filter((vpc) => vpc.vpc_id !== id));
@@ -43,7 +44,7 @@ const VPCCard = ({setError}) => {
 
   return <>
     <Typography.Title level={2}>Virtual Private Clouds</Typography.Title>
-    <NewVPCForm excludeRegions={excludeRegions} setFinished={setFinished}/>
+    <NewVPCForm excludeRegions={excludeRegions} setFinished={setFinished} setError={setError}/>
     <Divider />
     <VPCTable vpcs={vpcs} hasActions={true} onDelete={onClickDelete} />
   </>;

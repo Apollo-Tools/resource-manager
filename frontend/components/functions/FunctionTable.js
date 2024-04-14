@@ -14,9 +14,10 @@ import BoolValueDisplay from '../misc/BoolValueDisplay';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allFunctions = false}) => {
+const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allFunctions = false,
+  setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
   const [selectedResources, setSelectedResources] = useState(new Map());
@@ -24,21 +25,13 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (allFunctions) {
-        listAllFunctions(token, setFunctions, setError);
+        void listAllFunctions(token, setFunctions, setLoading, setError);
       } else {
-        listMyFunctions(token, setFunctions, setError);
+        void listMyFunctions(token, setFunctions, setLoading, setError);
       }
       setSelectedResources(value);
     }
   }, [allFunctions]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   useEffect(() => {
     onChange?.(selectedResources);
@@ -46,7 +39,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteFunction(id, token, setError)
+      deleteFunction(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setFunctions(functions.filter((func) => func.function_id !== id));
@@ -194,6 +187,7 @@ FunctionTable.propTypes = {
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
   allFunctions: PropTypes.bool,
+  setError: PropTypes.func.isRequired,
 };
 
 export default FunctionTable;

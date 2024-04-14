@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/vpcs`;
 
 /**
@@ -6,22 +7,20 @@ const API_ROUTE = `${env('API_URL')}/vpcs`;
  *
  * @param {string} token the access token
  * @param {function} setVPCs the function to set the retrieved vpcs
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError th function to set the error if one occurred
  */
-export async function listVPCs(token, setVPCs, setError) {
-  try {
+export async function listVPCs(token, setVPCs, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setVPCs(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setVPCs);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -31,11 +30,12 @@ export async function listVPCs(token, setVPCs, setError) {
  * @param {string} subnetIdValue the id value of the subnet
  * @param {number} regionId the id of the region
  * @param {string} token the access token
- * @param {function} setVPC the function to set the created vpc
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
+ * @return {Promise<boolean>} true if the response is valid
  */
-export async function createVPC(vpcIdValue, subnetIdValue, regionId, token, setVPC, setError) {
-  try {
+export async function createVPC(vpcIdValue, subnetIdValue, regionId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -50,12 +50,9 @@ export async function createVPC(vpcIdValue, subnetIdValue, regionId, token, setV
         },
       }),
     });
-    const data = await response.json();
-    setVPC(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -63,20 +60,19 @@ export async function createVPC(vpcIdValue, subnetIdValue, regionId, token, setV
  *
  * @param {number} id the id of the vpc
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteVPC(id, token, setError) {
-  try {
+export async function deleteVPC(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

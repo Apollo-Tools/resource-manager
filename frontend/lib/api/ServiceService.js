@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/services`;
 
 /**
@@ -17,11 +18,12 @@ const API_ROUTE = `${env('API_URL')}/services`;
  * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setService the function to set the created service
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
 export async function createService(serviceTypeId, name, image, replicas, ports, cpu, memory,
-    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setService, setError) {
-  try {
+    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setService, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -46,12 +48,9 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
         is_public: isPublic,
       }),
     });
-    const data = await response.json();
-    setService(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setService);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -67,12 +66,13 @@ export async function createService(serviceTypeId, name, image, replicas, ports,
  * @param {object[]} volumeMounts the volume mounts for the service
  * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurred *
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
 export async function updateService(id, replicas, ports, cpu, memory,
-    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setError) {
-  try {
+    k8sServiceTypeId, envVars, volumeMounts, isPublic, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
       headers: {
@@ -100,11 +100,9 @@ export async function updateService(id, replicas, ports, cpu, memory,
         is_public: isPublic,
       }),
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -112,22 +110,20 @@ export async function updateService(id, replicas, ports, cpu, memory,
  *
  * @param {string} token the access token
  * @param {function} setServices the function to set the retrieved services
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listMyServices(token, setServices, setError) {
-  try {
+export async function listMyServices(token, setServices, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/personal`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setServices(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setServices);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -135,22 +131,20 @@ export async function listMyServices(token, setServices, setError) {
  *
  * @param {string} token the access token
  * @param {function} setServices the function to set the retrieved services
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listAllServices(token, setServices, setError) {
-  try {
+export async function listAllServices(token, setServices, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(API_ROUTE, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setServices(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setServices);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -159,22 +153,20 @@ export async function listAllServices(token, setServices, setError) {
  * @param {number} id the id of the resource
  * @param {string} token the access token
  * @param {function} setService the function to set the retrieved service
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function getService(id, token, setService, setError) {
-  try {
+export async function getService(id, token, setService, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setService(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setService);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -182,20 +174,19 @@ export async function getService(id, token, setService, setError) {
  *
  * @param {number} id the id of the service
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteService(id, token, setError) {
-  try {
+export async function deleteService(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

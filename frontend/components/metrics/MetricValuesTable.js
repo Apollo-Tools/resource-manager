@@ -2,7 +2,7 @@ import {Button, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/api/MetricValueService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
 import DateColumnRender from '../misc/DateColumnRender';
@@ -10,9 +10,9 @@ import DateColumnRender from '../misc/DateColumnRender';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
+const MetricValuesTable = ({resourceId, metricValues, setMetricValues, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
 
   const showDeleteConfirm = (id) => {
     confirm({
@@ -28,17 +28,9 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues}) => {
     });
   };
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onClickDelete = (metricId) => {
     if (!checkTokenExpired()) {
-      deleteResourceMetric(resourceId, metricId, token, setError)
+      deleteResourceMetric(resourceId, metricId, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setMetricValues(metricValues.filter((metricValue) => metricValue.metric.metric_id !== metricId));
@@ -80,6 +72,7 @@ MetricValuesTable.propTypes = {
   resourceId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   metricValues: PropTypes.arrayOf(PropTypes.object),
   setMetricValues: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default MetricValuesTable;

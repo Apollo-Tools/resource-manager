@@ -34,7 +34,7 @@ const EnsembleDetails = ({setError}) => {
 
   useEffect(() => {
     if (!checkTokenExpired() && ensemble!=null) {
-      void listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setError);
+      void listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setLoading, setError);
       void validateEnsemble(id, token, setValidatedResources, setLoading, setError);
     }
   }, [ensemble]);
@@ -64,7 +64,7 @@ const EnsembleDetails = ({setError}) => {
 
   const onDeleteEnsembleResource = (resourceId) => {
     if (!checkTokenExpired()) {
-      deleteResourceFromEnsemble(id, resourceId, token, setError)
+      deleteResourceFromEnsemble(id, resourceId, token, setLoading, setError)
           .then(async (result) => {
             if (result) {
               await reloadEnsemble();
@@ -75,7 +75,7 @@ const EnsembleDetails = ({setError}) => {
 
   const onAddEnsembleResource = (resourceId) => {
     if (!checkTokenExpired()) {
-      addResourceToEnsemble(id, resourceId, token, setError)
+      addResourceToEnsemble(id, resourceId, token, setLoading, setError)
           .then(async (result) => {
             if (result) {
               await reloadEnsemble();
@@ -134,7 +134,7 @@ const EnsembleDetails = ({setError}) => {
         <Divider />
         {
           selectedSegment === 'Details' && ensemble &&
-        <EnsembleDetailsCard ensemble={ensemble}/>
+        <EnsembleDetailsCard ensemble={ensemble} setError={setError}/>
         }
         {
           selectedSegment === 'Resources' && ensemble && (

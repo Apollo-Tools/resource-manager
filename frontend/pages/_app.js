@@ -5,7 +5,7 @@ import Sidebar from '../components/misc/Sidebar';
 import PropTypes from 'prop-types';
 import Script from 'next/script';
 import {useEffect, useState} from 'react';
-import {openNotification} from '../components/misc/ErrorNotification';
+import {notificationProvider} from '../lib/misc/NotificationProvider';
 
 
 const App = ({Component, pageProps: {...pageProps}}) => {
@@ -14,7 +14,7 @@ const App = ({Component, pageProps: {...pageProps}}) => {
 
   useEffect(() => {
     if (error) {
-      openNotification(api, error.message);
+      notificationProvider(api, error.message);
       setError(null);
     }
   }, [error]);

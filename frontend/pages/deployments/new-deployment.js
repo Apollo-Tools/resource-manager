@@ -1,7 +1,7 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
-import {Button, message, Result, Space, Steps, Typography} from 'antd';
+import {Button, Result, Space, Steps, Typography} from 'antd';
 import NewDeploymentEnsemble from '../../components/deployments/NewDeploymentEnsemble';
 import NewResourceDeployments from '../../components/deployments/NewResourceDeployments';
 import AddCredentials from '../../components/deployments/AddCredentials';
@@ -32,7 +32,6 @@ const NewDeployment = ({setError}) => {
   const [newDeployment, setNewDeployment] = useState();
   const [selectedEnsembleId, setSelectedEnsembleId] = useState();
   const [alertingUrl, setAlertingUrl] = useState();
-  const [messageApi, contextHolder] = message.useMessage();
   const [current, setCurrent] = useState(0);
   const [functionResources, setFunctionResources] = useState(new Map());
   const [serviceResources, setServiceResources] = useState(new Map());
@@ -50,16 +49,6 @@ const NewDeployment = ({setError}) => {
     setCurrent(current - 1);
   };
 
-
-  useEffect(() => {
-    if (newDeployment != null) {
-      messageApi.open({
-        type: 'success',
-        content: `Deployment with id '${newDeployment.deployment_id}' has been created!`,
-      });
-    }
-  }, [newDeployment]);
-
   const onClickRestart = () => {
     setCurrent(0);
     setNewDeployment(null);
@@ -70,7 +59,6 @@ const NewDeployment = ({setError}) => {
 
   return (
     <>
-      {contextHolder}
       <Head>
         <title>{`${siteTitle}: Resources`}</title>
       </Head>
@@ -84,6 +72,7 @@ const NewDeployment = ({setError}) => {
             next={next}
             setSelectedEnsemble={setSelectedEnsembleId}
             setAlertingUrl={setAlertingUrl}
+            setError={setError}
           />}
         {current === 1 &&
           <NewResourceDeployments

@@ -1,5 +1,5 @@
 import env from '@beam-australia/react-env';
-import {handleApiCall, setResult} from './ApiHandler';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/accounts`;
 
 /**
@@ -34,11 +34,11 @@ export async function getLogin(username, password, setToken, setLoading, setErro
  * @param {string} oldPassword the old password
  * @param {string} newPassword the new password
  * @param {string} token the access token
- * @param {function} setResponse the function to set the response
  * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
+ * @return {Promise<boolean>} true if the response was valid
  */
-export async function changePassword(oldPassword, newPassword, token, setResponse, setLoading, setError) {
+export async function changePassword(oldPassword, newPassword, token, setLoading, setError) {
   const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/me`, {
       method: 'PATCH',
@@ -51,9 +51,9 @@ export async function changePassword(oldPassword, newPassword, token, setRespons
         new_password: newPassword,
       }),
     });
-    setResponse(response);
+    return await checkResponseOk(response);
   };
-  await handleApiCall(apiCall, setLoading, setError);
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -105,11 +105,11 @@ export async function getMyAccount(token, setAccount, setLoading, setError) {
  * @param {string} username the username
  * @param {string} password the password
  * @param {string} token the access token
- * @param {function} setResponse the function to set the response
  * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
+ * @return {Promise<boolean>} true if the request was successful else false
  */
-export async function signUp(username, password, token, setResponse, setLoading, setError) {
+export async function signUp(username, password, token, setLoading, setError) {
   const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/signup`, {
       method: 'POST',
@@ -122,9 +122,9 @@ export async function signUp(username, password, token, setResponse, setLoading,
         password: password,
       }),
     });
-    setResponse(response);
+    return checkResponseOk(response);
   };
-  await handleApiCall(apiCall, setLoading, setError);
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -155,7 +155,7 @@ export async function listAccounts(token, setAccounts, setLoading, setError) {
  * @param {string} token the access token
  * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
- * @return {boolean} true if the request was successful else false
+ * @return {Promise<boolean>} true if the request was successful else false
  */
 export async function lockUser(accountId, token, setLoading, setError) {
   const apiCall = async () => {
@@ -165,7 +165,7 @@ export async function lockUser(accountId, token, setLoading, setError) {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
   return await handleApiCall(apiCall, setLoading, setError);
 }
@@ -177,7 +177,7 @@ export async function lockUser(accountId, token, setLoading, setError) {
  * @param {string} token the access token
  * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
- * @return {boolean} true if the request was successful else false
+ * @return {Promise<boolean>} true if the request was successful else false
  */
 export async function unlockUser(accountId, token, setLoading, setError) {
   const apiCall = async () => {
@@ -187,7 +187,7 @@ export async function unlockUser(accountId, token, setLoading, setError) {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
   return await handleApiCall(apiCall, setLoading, setError);
 }

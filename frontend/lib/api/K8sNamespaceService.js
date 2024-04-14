@@ -20,6 +20,5 @@ export async function listK8sNamespaces(token, setNamespaces, setLoading, setErr
     });
     await setResult(response, setNamespaces);
   };
-
   await handleApiCall(apiCall, setLoading, setError);
 }

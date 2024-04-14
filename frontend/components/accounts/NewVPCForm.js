@@ -1,57 +1,42 @@
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
-import {Button, Form, Input, message, Select} from 'antd';
+import {App, Button, Form, Input, Select} from 'antd';
 import {SettingOutlined} from '@ant-design/icons';
 import PropTypes from 'prop-types';
 import {listRegions} from '../../lib/api/RegionService';
 import {createVPC} from '../../lib/api/VPCService';
 import ProviderIcon from '../misc/ProviderIcon';
+import {successNotification} from '../../lib/misc/NotificationProvider';
 
 
-const NewVPCForm = ({excludeRegions, setFinished}) => {
+const NewVPCForm = ({excludeRegions, setFinished, setError}) => {
+  const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [regions, setRegions] = useState([]);
-  const [newVPC, setNewVPC] = useState();
-  const [error, setError] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
+  const [isLoading, setLoading] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listRegions(token, setRegions, setError);
+      void listRegions(token, setRegions, setLoading, setError);
     }
   }, []);
 
-  useEffect(() => {
-    if (error) {
-      messageApi.open({
-        type: 'error',
-        content: 'Something went wrong!',
-      });
-      setError(false);
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (newVPC) {
-      messageApi.open({
-        type: 'success',
-        content: 'VPC has been created successfully!',
-      });
-      setFinished(true);
-    }
-  }, [newVPC]);
-
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createVPC(values.vpcIdValue, values.subnetIdValue, values.region, token, setNewVPC, setError)
-          .then(() => form.resetFields());
+      await createVPC(values.vpcIdValue, values.subnetIdValue, values.region, token, setLoading, setError)
+          .then((result) => {
+            if (result) {
+              successNotification(notification, 'VPC has been created successfully!');
+              setFinished(true);
+              form.resetFields();
+            }
+          });
     }
   };
 
   return (
     <>
-      {contextHolder}
       <Form
         name="vpcForm"
         onFinish={onFinish}
@@ -123,6 +108,7 @@ const NewVPCForm = ({excludeRegions, setFinished}) => {
 NewVPCForm.propTypes = {
   excludeRegions: PropTypes.arrayOf(PropTypes.number),
   setFinished: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewVPCForm;

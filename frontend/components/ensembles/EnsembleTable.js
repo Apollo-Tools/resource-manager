@@ -31,8 +31,6 @@ const EnsembleTable = ({rowSelection, setError}) => {
           .then((result) => {
             if (result) {
               setEnsembles(ensembles.filter((ensemble) => ensemble.ensemble_id !== id));
-            } else {
-              setError(new Error('failed to delete entry'));
             }
           });
     }

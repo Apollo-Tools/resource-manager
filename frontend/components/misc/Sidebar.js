@@ -4,7 +4,7 @@ import {
   BookOutlined,
   UserOutlined,
   LogoutOutlined,
-  HomeOutlined,
+  AppstoreOutlined,
   GroupOutlined,
   FunctionOutlined,
   CloudServerOutlined,
@@ -45,7 +45,7 @@ const Sidebar = ({children}) => {
   };
 
   const items = [
-    getItem(<Link href="/" ><HomeOutlined /><span>Home</span></Link>, '0'),
+    getItem(<Link href="/" ><AppstoreOutlined /><span>Overview</span></Link>, '0'),
     getItem(<><DesktopOutlined /><span>Resources</span></>, '1', [
       getItem(<Link href="/resources/resources" ><CloudServerOutlined /><span>Resources</span></Link>, '1.2'),
       getItem(<Link href="/functions/functions"><FunctionOutlined /><span>Functions</span></Link>, '1.3'),

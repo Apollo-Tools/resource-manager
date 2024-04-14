@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/resources`;
 
 /**
@@ -7,22 +8,20 @@ const API_ROUTE = `${env('API_URL')}/resources`;
  * @param {number} resourceId the id of the resource
  * @param {string} token the access token
  * @param {function} setMetricValues a function to set the retrieved metric values
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  */
-export async function listResourceMetrics(resourceId, token, setMetricValues, setError) {
-  try {
+export async function listResourceMetrics(resourceId, token, setMetricValues, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${resourceId}/metrics`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setMetricValues(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setMetricValues);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -31,16 +30,12 @@ export async function listResourceMetrics(resourceId, token, setMetricValues, se
  * @param {number} resourceId the id of the resource
  * @param {number} metricId the id of the metric
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurs
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteResourceMetric(
-    resourceId,
-    metricId,
-    token,
-    setError,
-) {
-  try {
+export async function deleteResourceMetric(resourceId, metricId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(
         `${API_ROUTE}/${resourceId}/metrics/${metricId}`, {
           method: 'DELETE',
@@ -48,9 +43,7 @@ export async function deleteResourceMetric(
             Authorization: `Bearer ${token}`,
           },
         });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
