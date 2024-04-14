@@ -85,14 +85,14 @@ public class EnsembleUtility {
         return ensembleSLOs.stream()
             .map(ensembleSLO -> {
                 List<SLOValue> sloValues;
-                if (ensembleSLO.getValueNumbers() != null) {
+                if (ensembleSLO.getValueNumbers() != null && !ensembleSLO.getValueNumbers().isEmpty()) {
                     sloValues = ensembleSLO.getValueNumbers().stream().map(value -> {
                         SLOValue sloValue = new SLOValue();
                         sloValue.setValueNumber(value);
                         sloValue.setSloValueType(SLOValueType.NUMBER);
                         return sloValue;
                     }).collect(Collectors.toList());
-                } else if (ensembleSLO.getValueStrings() != null) {
+                } else if (ensembleSLO.getValueStrings() != null && !ensembleSLO.getValueStrings().isEmpty()) {
                     sloValues = ensembleSLO.getValueStrings().stream().map(value -> {
                         SLOValue sloValue = new SLOValue();
                         sloValue.setValueString(value);
