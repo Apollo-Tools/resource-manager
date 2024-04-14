@@ -20,10 +20,10 @@ public class MainVerticle extends AbstractVerticle {
             .map(verticle -> vertx.rxUndeploy(verticle).toString());
         Single<String> deployDatabaseVerticle =
             vertx.rxDeployVerticle(new DatabaseVerticle(), new DeploymentOptions().setConfig(config));
-        Single<String> deployDeploymentVerticle = vertx.rxDeployVerticle(new DeploymentVerticle(),
-            new DeploymentOptions().setConfig(config));
-        Single<String> deployApiVerticle = vertx.rxDeployVerticle(new ApiVerticle(),
-            new DeploymentOptions().setConfig(config));
+        Single<String> deployDeploymentVerticle = vertx.rxDeployVerticle(DeploymentVerticle.class.getName(),
+            new DeploymentOptions().setConfig(config).setInstances(8));
+        Single<String> deployApiVerticle = vertx.rxDeployVerticle(ApiVerticle.class.getName(),
+            new DeploymentOptions().setConfig(config).setInstances(8));
         Single<String> deployMonitoringVerticle = vertx.rxDeployVerticle(new MonitoringVerticle(),
             new DeploymentOptions().setConfig(config));
         Single<String> deployAlertingVerticle = vertx.rxDeployVerticle(new AlertingVerticle(),
