@@ -6,8 +6,6 @@ import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import at.uibk.dps.rm.service.monitoring.aws.EC2PriceMonitoring;
 import at.uibk.dps.rm.service.monitoring.aws.LambdaPriceMonitoring;
-import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionService;
-import at.uibk.dps.rm.service.monitoring.function.FunctionExecutionServiceImpl;
 import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
 import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryServiceImpl;
@@ -47,6 +45,7 @@ public class MonitoringVerticle extends AbstractVerticle {
         LatencyMonitoringUtility latencyMonitoringUtility = new LatencyMonitoringUtility();
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, config, serviceProxyProvider,
             lambdaMonitoring, ec2PriceMonitoring));
+        monitoringHandlers.add(new EnsembleValidationHandler(vertx, config, serviceProxyProvider));
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config, serviceProxyProvider,
             new K8sMonitoringServiceImpl(), latencyMonitoringUtility));
         monitoringHandlers.add(new OpenFaasMonitoringHandler(vertx, config, serviceProxyProvider,
@@ -77,7 +76,6 @@ public class MonitoringVerticle extends AbstractVerticle {
             serviceProxyBinder.bind(AWSPricePushService.class, new AWSPricePushServiceImpl(webClient, config));
             serviceProxyBinder.bind(ServiceStartupShutdownPushService.class,
                 new ServiceStartupShutdownPushServiceImpl(webClient, config));
-            serviceProxyBinder.bind(FunctionExecutionService.class, new FunctionExecutionServiceImpl(webClient));
             serviceProxyBinder.bind(FunctionInvocationPushService.class,
                 new FunctionInvocationPushServiceImpl(webClient, config));
             serviceProxyBinder.bind(K8sMetricPushService.class, new K8sMetricPushServiceImpl(webClient, config));
