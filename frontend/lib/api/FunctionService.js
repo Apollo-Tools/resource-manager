@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/functions`;
 
 /**
@@ -13,11 +14,12 @@ const API_ROUTE = `${env('API_URL')}/functions`;
  * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setFunction the function to set the created function
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
 export async function createFunctionCode(name, functionTypeId, runtimeId, code,
-    timeout, memory, isPublic, token, setFunction, setError) {
-  try {
+    timeout, memory, isPublic, token, setFunction, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -38,12 +40,9 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
         is_public: isPublic,
       }),
     });
-    const data = await response.json();
-    setFunction(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setFunction);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -58,11 +57,12 @@ export async function createFunctionCode(name, functionTypeId, runtimeId, code,
  * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
  * @param {function} setFunction the function to set the created function
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
 export async function createFunctionUpload(name, functionTypeId, runtimeId, upload,
-    timeout, memory, isPublic, token, setFunction, setError) {
-  try {
+    timeout, memory, isPublic, token, setFunction, setLoading, setError) {
+  const apiCall = async () => {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('function_type', JSON.stringify({artifact_type_id: functionTypeId}));
@@ -78,12 +78,9 @@ export async function createFunctionUpload(name, functionTypeId, runtimeId, uplo
       },
       body: formData,
     });
-    const data = await response.json();
-    setFunction(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setFunction);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -91,22 +88,20 @@ export async function createFunctionUpload(name, functionTypeId, runtimeId, uplo
  *
  * @param {string} token the access token
  * @param {function} setFunctions the function to set the retrieved functions
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function listMyFunctions(token, setFunctions, setError) {
-  try {
+export async function listMyFunctions(token, setFunctions, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/personal`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setFunctions(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setFunctions);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -114,22 +109,20 @@ export async function listMyFunctions(token, setFunctions, setError) {
  *
  * @param {string} token the access token
  * @param {function} setFunctions the function to set the retrieved functions
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function listAllFunctions(token, setFunctions, setError) {
-  try {
+export async function listAllFunctions(token, setFunctions, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(API_ROUTE, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setFunctions(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setFunctions);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -138,22 +131,20 @@ export async function listAllFunctions(token, setFunctions, setError) {
  * @param {number} id the id of the function
  * @param {string} token the access token
  * @param {function} setFunction the function to set the retrieved function
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  */
-export async function getFunction(id, token, setFunction, setError) {
-  try {
+export async function getFunction(id, token, setFunction, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setFunction(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setFunction);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -165,12 +156,13 @@ export async function getFunction(id, token, setFunction, setError) {
  * @param {number} memory the memory of the function
  * @param {boolean} isPublic whether the public should be publicly available
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
 export async function updateFunctionSettings(id, code, timeout, memory, isPublic,
-    token, setError) {
-  try {
+    token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
       headers: {
@@ -184,11 +176,9 @@ export async function updateFunctionSettings(id, code, timeout, memory, isPublic
         is_public: isPublic,
       }),
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return await checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -197,11 +187,12 @@ export async function updateFunctionSettings(id, code, timeout, memory, isPublic
  * @param {number} id the id of the function
  * @param {File} upload the packaged function
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function updateFunctionUpload(id, upload, token, setError) {
-  try {
+export async function updateFunctionUpload(id, upload, token, setLoading, setError) {
+  const apiCall = async () => {
     const formData = new FormData();
     formData.append('code', upload);
     const response = await fetch(`${API_ROUTE}/${id}/file`, {
@@ -211,11 +202,9 @@ export async function updateFunctionUpload(id, upload, token, setError) {
       },
       body: formData,
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -223,20 +212,19 @@ export async function updateFunctionUpload(id, upload, token, setError) {
  *
  * @param {number} id the id of the function
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteFunction(id, token, setError) {
-  try {
+export async function deleteFunction(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

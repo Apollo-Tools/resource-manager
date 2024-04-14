@@ -12,10 +12,10 @@ import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormVal
 import {listServiceTypes} from '../../lib/api/ServiceTypeService';
 
 
-const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished}) => {
+const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState(false);
   const [k8sServiceTypes, setK8sServiceTypes] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [initialPorts, setInitialPorts] = useState();
@@ -24,8 +24,8 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listServiceTypes(token, setServiceTypes, setError);
-      listK8sServiceTypes(token, setK8sServiceTypes, setError);
+      void listServiceTypes(token, setServiceTypes, setLoading, setError);
+      void listK8sServiceTypes(token, setK8sServiceTypes, setLoading, setError);
     }
   }, []);
 
@@ -46,14 +46,6 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
     }
   }, [k8sServiceTypes]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       let ports = [];
@@ -65,10 +57,10 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
       if (mode === 'new') {
         await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
             values.memory, values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setNewService,
-            setError);
+            setLoading, setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setError);
+            values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setLoading, setError);
       }
       setFinished?.(true);
       setModified(false);
@@ -562,6 +554,7 @@ NewUpdateServiceForm.propTypes = {
   service: PropTypes.object,
   mode: PropTypes.oneOf(['new', 'update']),
   setFinished: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewUpdateServiceForm;

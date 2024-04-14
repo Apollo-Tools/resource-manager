@@ -10,43 +10,35 @@ import {listEnvironments} from '../../../lib/api/EnvironmentService';
 import BoolValueDisplay from '../BoolValueDisplay';
 
 
-const SloDisplay = ({slos}) => {
+const SloDisplay = ({slos, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [regions, setRegions] = useState([]);
   const [providers, setProviders] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [environments, setEnvironments] = useState([]);
   const [platforms, setPlatforms] = useState([]);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   useEffect(() => {
     if (slos && !checkTokenExpired()) {
       const sloNames = new Set(slos.map((slo) => slo.name));
       if (sloNames.has('region')) {
-        listRegions(token, setRegions, setError);
+        void listRegions(token, setRegions, setLoading, setError);
       }
       if (sloNames.has('resource_type')) {
-        listResourceTypes(token, setResourceTypes, setError);
+        void listResourceTypes(token, setResourceTypes, setLoading, setError);
       }
       if (sloNames.has('platform')) {
-        listPlatforms(token, setPlatforms, setError);
+        void listPlatforms(token, setPlatforms, setLoading, setError);
       }
       if (sloNames.has('resource_provider')) {
-        listResourceProviders(token, setProviders, setError);
+        void listResourceProviders(token, setProviders, setLoading, setError);
       }
       if (sloNames.has('environment')) {
-        listEnvironments(token, setEnvironments, setError);
+        void listEnvironments(token, setEnvironments, setLoading, setError);
       }
     }
   }, [slos]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const mapSloValue = (name, value) => {
     switch (name) {
@@ -95,6 +87,7 @@ const SloDisplay = ({slos}) => {
 
 SloDisplay.propTypes = {
   slos: PropTypes.arrayOf(PropTypes.object).isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default SloDisplay;

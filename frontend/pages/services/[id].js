@@ -6,33 +6,26 @@ import {getService} from '../../lib/api/ServiceService';
 import NewUpdateServiceForm from '../../components/services/NewUpdateServiceForm';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
+import PropTypes from 'prop-types';
 
-const FunctionDetails = () => {
+const ServiceDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [service, setService] = useState();
-  const [error, setError] = useState(false);
   const [isFinished, setFinished] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getService(id, token, setService, setError);
+      void getService(id, token, setService, setLoading, setError);
     }
   }, [id]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (isFinished) {
       setFinished(false);
-      getService(id, token, setService, setError);
+      void getService(id, token, setService, setLoading, setError);
     }
   }, [isFinished]);
 
@@ -45,11 +38,21 @@ const FunctionDetails = () => {
         <Typography.Title level={2}>Service Details ({service?.service_id})</Typography.Title>
         <Divider />
         { service &&
-          <NewUpdateServiceForm setNewService={setService} service={service} mode='update' setFinished={setFinished}/>
+          <NewUpdateServiceForm
+            setNewService={setService}
+            service={service}
+            mode='update'
+            setFinished={setFinished}
+            setError={setError}
+          />
         }
       </div>
     </>
   );
 };
 
-export default FunctionDetails;
+ServiceDetails.propTypes = {
+  setError: PropTypes.func.isRequired,
+};
+
+export default ServiceDetails;

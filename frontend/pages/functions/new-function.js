@@ -1,9 +1,10 @@
 import {useState} from 'react';
 import NewFunctionForm from '../../components/functions/NewFunctionForm';
 import NewEntityContainer from '../../components/misc/NewEntityContainer';
+import PropTypes from 'prop-types';
 
 
-const NewFunction = () => {
+const NewFunction = ({setError}) => {
   const [newFunction, setNewFunction] = useState(null);
 
   return (
@@ -14,10 +15,14 @@ const NewFunction = () => {
         onReset={() => setNewFunction(null)}
         rootPath="/functions/functions"
       >
-        <NewFunctionForm setNewFunction={setNewFunction} />
+        <NewFunctionForm setNewFunction={setNewFunction} setError={setError} />
       </NewEntityContainer>
     </>
   );
+};
+
+NewFunction.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewFunction;

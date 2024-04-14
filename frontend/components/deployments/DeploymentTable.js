@@ -1,24 +1,22 @@
 import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import {Button, Table, Space, Tooltip, App} from 'antd';
+import {Button, Table, Space, Tooltip} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyDeployments} from '../../lib/api/DeploymentService';
 import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import DateColumnRender from '../misc/DateColumnRender';
-import {openNotification} from '../misc/ErrorNotification';
+import PropTypes from 'prop-types';
 
 const {Column} = Table;
 
-const DeploymentTable = () => {
-  const {notification} = App.useApp();
+const DeploymentTable = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [deployments, setDeployments] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
   const [isLoading, setLoading] = useState(false);
-  const [error, setError] = useState();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -33,13 +31,6 @@ const DeploymentTable = () => {
             return {text: item, value: item};
           }));
   }, [deployments]);
-
-  useEffect(() => {
-    if (error) {
-      openNotification(notification, error.message);
-      setError(null);
-    }
-  }, [error]);
 
   const checkFinishedAtNotNull = (deployment) => {
     return Object.hasOwn(deployment, 'finished_at') && deployment.finishedAt == null;
@@ -79,6 +70,10 @@ const DeploymentTable = () => {
       />
     </Table>
   );
+};
+
+DeploymentTable.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default DeploymentTable;

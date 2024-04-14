@@ -5,8 +5,9 @@ import FunctionTable from '../../components/functions/FunctionTable';
 import NewEntityButton from '../../components/misc/NewEntityButton';
 import {useState} from 'react';
 import ArtifactTypeTable from '../../components/artifacttypes/ArtifactTypeTable';
+import PropTypes from 'prop-types';
 
-const Functions = () => {
+const Functions = ({setError}) => {
   const [selectedSegment, setSelectedSegment] = useState('Functions');
   const segments = ['Functions', 'Types'];
   const [showAllFunctions, setShowAllFunctions] = useState(false);
@@ -35,17 +36,21 @@ const Functions = () => {
                   />
                 </div>
                 <div className="col-span-full">
-                  <FunctionTable allFunctions={showAllFunctions}/>
+                  <FunctionTable allFunctions={showAllFunctions} setError={setError}/>
                 </div>
               </div> :
               <>
                 <NewEntityButton name="Function Type" path={`/functions/new-type`}/>
-                <ArtifactTypeTable artifact="function" />
+                <ArtifactTypeTable artifact="function" setError={setError}/>
               </>
         }
       </div>
     </>
   );
+};
+
+Functions.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default Functions;

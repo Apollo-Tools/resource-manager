@@ -11,36 +11,28 @@ import DateColumnRender from '../misc/DateColumnRender';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ArtifactTypeTable = ({artifact}) => {
+const ArtifactTypeTable = ({artifact, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [artifactTypes, setArtifactTypes] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (artifact === 'service') {
-        listServiceTypes(token, setArtifactTypes, setError);
+        void listServiceTypes(token, setArtifactTypes, setLoading, setError);
       } else {
-        listFunctionTypes(token, setArtifactTypes, setError);
+        void listFunctionTypes(token, setArtifactTypes, setLoading, setError);
       }
     }
   }, []);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
       let deleteArtifactType;
       if (artifact === 'service') {
-        deleteArtifactType = deleteServiceType(id, token, setError);
+        deleteArtifactType = deleteServiceType(id, token, setLoading, setError);
       } else {
-        deleteArtifactType = deleteFunctionType(id, token, setError);
+        deleteArtifactType = deleteFunctionType(id, token, setLoading, setError);
       }
       deleteArtifactType.then((result) => {
         if (result) {
@@ -99,6 +91,7 @@ const ArtifactTypeTable = ({artifact}) => {
 
 ArtifactTypeTable.propTypes = {
   artifact: PropTypes.oneOf(['service', 'function']).isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default ArtifactTypeTable;

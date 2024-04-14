@@ -9,34 +9,26 @@ import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormVal
 import TooltipIcon from '../misc/TooltipIcon';
 
 
-const NewResourceForm = ({setNewResource}) => {
+const NewResourceForm = ({setNewResource, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
   const [platforms, setPlatforms] = useState([]);
   const [regions, setRegions] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listPlatforms(token, setPlatforms, setError)
+      listPlatforms(token, setPlatforms, setLoading, setError)
           .then(() => setPlatforms((prevTypes) =>
             prevTypes.sort((a, b) => a.platform.localeCompare(b.platform)),
           ));
     }
   }, []);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createResource(values.name, values.platform, values.region, values.isLockable, token, setNewResource,
-          setError);
+          setLoading, setError);
     }
   };
   const onFinishFailed = (errorInfo) => {
@@ -45,7 +37,7 @@ const NewResourceForm = ({setNewResource}) => {
 
   const onChangePlatform = async (platformId) => {
     if (!checkTokenExpired()) {
-      await listRegionsByPlatform(platformId, token, setRegions, setError);
+      await listRegionsByPlatform(platformId, token, setRegions, setLoading, setError);
     }
     form.resetFields(['region']);
   };
@@ -136,6 +128,7 @@ const NewResourceForm = ({setNewResource}) => {
 
 NewResourceForm.propTypes = {
   setNewResource: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewResourceForm;

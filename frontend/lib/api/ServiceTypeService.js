@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/service-types`;
 
 /**
@@ -7,10 +8,11 @@ const API_ROUTE = `${env('API_URL')}/service-types`;
  * @param {string} name the name of the service type
  * @param {string} token the access token
  * @param {function} setServiceType the function to set the created service type
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createServiceType(name, token, setServiceType, setError) {
-  try {
+export async function createServiceType(name, token, setServiceType, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -21,12 +23,9 @@ export async function createServiceType(name, token, setServiceType, setError) {
         name: name,
       }),
     });
-    const data = await response.json();
-    setServiceType(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setServiceType);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -34,22 +33,20 @@ export async function createServiceType(name, token, setServiceType, setError) {
  *
  * @param {string} token the access token
  * @param {function} setServiceTypes the function to set the retrieved service types
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listServiceTypes(token, setServiceTypes, setError) {
-  try {
+export async function listServiceTypes(token, setServiceTypes, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setServiceTypes(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setServiceTypes);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -57,20 +54,19 @@ export async function listServiceTypes(token, setServiceTypes, setError) {
  *
  * @param {number} id the id of the function type
  * @param {string} token the access token
- * @param {function} setError the function to set the error if one occurs
+ * @param {function} setLoading the function to set the loading state
+ * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteServiceType(id, token, setError) {
-  try {
+export async function deleteServiceType(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

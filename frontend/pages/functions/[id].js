@@ -7,31 +7,24 @@ import UpdateFunctionFileForm from '../../components/functions/UpdateFunctionFil
 import UpdateFunctionSettingsForm from '../../components/functions/UpdateFunctionSettingsForm';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
+import PropTypes from 'prop-types';
 
-const FunctionDetails = () => {
+const FunctionDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [func, setFunction] = useState('');
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      getFunction(id, token, setFunction, setError);
+      void getFunction(id, token, setFunction, setLoading, setError);
     }
   }, [id]);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const reloadFunction = async () => {
     if (!checkTokenExpired()) {
-      await getFunction(id, token, setFunction, setError);
+      await getFunction(id, token, setFunction, setLoading, setError);
     }
   };
 
@@ -45,14 +38,18 @@ const FunctionDetails = () => {
         <Divider />
         {
           func && <>
-            <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction}/>
+            <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction} setError={setError}/>
             <Divider/>
-            <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction}/>
+            <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction} setError={setError}/>
           </>
         }
       </div>
     </>
   );
+};
+
+FunctionDetails.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default FunctionDetails;

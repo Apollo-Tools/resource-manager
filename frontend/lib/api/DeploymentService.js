@@ -1,5 +1,5 @@
 import env from '@beam-australia/react-env';
-import {handleApiCall, setResult} from './ApiHandler';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/deployments`;
 
 /**
@@ -108,7 +108,7 @@ export async function cancelDeployment(id, token, setLoading, setError) {
         'Authorization': `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
-  await handleApiCall(apiCall, setLoading, setError);
+  return await handleApiCall(apiCall, setLoading, setError);
 }

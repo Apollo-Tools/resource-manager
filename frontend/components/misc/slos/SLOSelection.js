@@ -12,7 +12,7 @@ import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
 import {listEnvironments} from '../../../lib/api/EnvironmentService';
 
 
-const SLOSelection = ({onChange}) => {
+const SLOSelection = ({onChange, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [regions, setRegions] = useState([]);
@@ -21,27 +21,18 @@ const SLOSelection = ({onChange}) => {
   const [environments, setEnvironments] = useState([]);
   const [platforms, setPlatforms] = useState([]);
   const [sloId, setSloId] = useState(0);
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
   const [metricsInitialised, setMetricsInitialised] = useState(false);
   const [slos, setSlos] = useState([]);
 
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listMetrics(token, setMetrics, setError);
-      listRegions(token, setRegions, setError);
-      listResourceTypes(token, setResourceTypes, setError);
-      listPlatforms(token, setPlatforms, setError);
-      listResourceProviders(token, setProviders, setError);
-      listEnvironments(token, setEnvironments, setError);
+      void listMetrics(token, setMetrics, setLoading, setError);
+      void listRegions(token, setRegions, setLoading, setError);
+      void listResourceTypes(token, setResourceTypes, setLoading, setError);
+      void listPlatforms(token, setPlatforms, setLoading, setError);
+      void listResourceProviders(token, setProviders, setLoading, setError);
+      void listEnvironments(token, setEnvironments, setLoading, setError);
     }
   }, []);
 
@@ -181,6 +172,7 @@ const SLOSelection = ({onChange}) => {
 
 SLOSelection.propTypes = {
   onChange: PropTypes.func,
+  setError: PropTypes.func.isRequired,
 };
 
 export default SLOSelection;

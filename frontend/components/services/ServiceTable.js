@@ -13,9 +13,9 @@ import BoolValueDisplay from '../misc/BoolValueDisplay';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedResources, setSelectedResources] = useState();
@@ -23,21 +23,13 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (allServices) {
-        listAllServices(token, setServices, setError);
+        void listAllServices(token, setServices, setLoading, setError);
       } else {
-        listMyServices(token, setServices, setError);
+        void listMyServices(token, setServices, setLoading, setError);
       }
       setSelectedResources(value);
     }
   }, [allServices]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   useEffect(() => {
     onChange?.(selectedResources);
@@ -45,7 +37,7 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteService(id, token, setError)
+      deleteService(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setServices(services.filter((service) => service.service_id !== id));
@@ -194,6 +186,7 @@ ServiceTable.propTypes = {
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
   allServices: PropTypes.bool,
+  setError: PropTypes.func.isRequired,
 };
 
 export default ServiceTable;

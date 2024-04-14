@@ -1,6 +1,6 @@
 export const nameValidationRule = {
   required: true,
-  message: 'Please input a name!',
+  message: 'Please provide a name!',
 };
 
 export const nameRegexValidationRule = {

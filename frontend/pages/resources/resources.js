@@ -7,31 +7,24 @@ import {deleteResource, listResources} from '../../lib/api/ResourceService';
 import {ExclamationCircleFilled} from '@ant-design/icons';
 import {useEffect, useState} from 'react';
 import NewEntityButton from '../../components/misc/NewEntityButton';
+import PropTypes from 'prop-types';
 
 const {confirm} = Modal;
 
-const Resources = () => {
+const Resources = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [resources, setResources] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listResources(token, setResources, setError);
+      void listResources(token, setResources, setLoading, setError);
     }
   }, []);
 
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
-
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteResource(id, token, setError)
+      deleteResource(id, token, setLoading, setError)
           .then((result) => {
             if (result) {
               setResources(resources.filter((resource) => resource.resource_id !== id));
@@ -66,6 +59,10 @@ const Resources = () => {
       </div>
     </>
   );
+};
+
+Resources.propTypes = {
+  setError: PropTypes.func.isRequired,
 };
 
 export default Resources;

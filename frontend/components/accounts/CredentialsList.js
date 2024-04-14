@@ -19,8 +19,6 @@ const CredentialsList = ({credentials, setCredentials, setError}) => {
           .then((result) => {
             if (result) {
               setCredentials(credentials.filter((credential) => credential.credentials_id !== id));
-            } else {
-              setError(new Error('failed to delete entry'));
             }
           });
     }

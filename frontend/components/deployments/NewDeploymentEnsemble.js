@@ -3,7 +3,15 @@ import {Button, Divider, Form, Input, Switch} from 'antd';
 import {useState} from 'react';
 import PropTypes from 'prop-types';
 
-const NewDeploymentEnsemble = ({selectedEnsemble, alertingUrl, next, setSelectedEnsemble, setAlertingUrl}) => {
+const NewDeploymentEnsemble = (
+    {
+      selectedEnsemble,
+      alertingUrl,
+      next,
+      setSelectedEnsemble,
+      setAlertingUrl,
+      setError,
+    }) => {
   const [selected, setSelected] = useState(selectedEnsemble!=null);
   const [alerting, enableAlerting] = useState(alertingUrl != null);
 
@@ -86,7 +94,7 @@ const NewDeploymentEnsemble = ({selectedEnsemble, alertingUrl, next, setSelected
         </Form.Item>
       </div>
       <Divider />
-      <EnsembleTable rowSelection={rowSelection}/>
+      <EnsembleTable rowSelection={rowSelection} setError={setError}/>
       <Form.Item>
         <Button type="primary" disabled={!selected} className="float-right" htmlType="submit">Next</Button>
       </Form.Item>
@@ -100,6 +108,7 @@ NewDeploymentEnsemble.propTypes = {
   next: PropTypes.func.isRequired,
   setSelectedEnsemble: PropTypes.func.isRequired,
   setAlertingUrl: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewDeploymentEnsemble;

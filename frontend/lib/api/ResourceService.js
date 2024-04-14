@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall, setResult} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/resources`;
 
 /**
@@ -10,10 +11,12 @@ const API_ROUTE = `${env('API_URL')}/resources`;
  * @param {boolean} isLockable whether a resource should be lockable for deployments or not
  * @param {string} token the access token
  * @param {function} setResource the function to set the created resource
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function createResource(name, platformId, regionId, isLockable, token, setResource, setError) {
-  try {
+export async function createResource(name, platformId, regionId, isLockable,
+    token, setResource, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}`, {
       method: 'POST',
       headers: {
@@ -31,12 +34,9 @@ export async function createResource(name, platformId, regionId, isLockable, tok
         is_lockable: isLockable,
       }),
     });
-    const data = await response.json();
-    setResource(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setResource);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -44,10 +44,11 @@ export async function createResource(name, platformId, regionId, isLockable, tok
  *
  * @param {string} token the access token
  * @param {function} setResources the function to set the retrieved resources
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listResources(token, setResources, setError) {
-  try {
+export async function listResources(token, setResources, setLoading, setError) {
+  const apiCall = async () => {
     const route = `${API_ROUTE}`;
     const response = await fetch(route, {
       method: 'GET',
@@ -55,12 +56,9 @@ export async function listResources(token, setResources, setError) {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setResources(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setResources);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -69,22 +67,20 @@ export async function listResources(token, setResources, setError) {
  * @param {number} id the id of the resource
  * @param {string} token the access token
  * @param {function} setResource the function to set the retrieved resource
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function getResource(id, token, setResource, setError) {
-  try {
+export async function getResource(id, token, setResource, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setResource(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setResource);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -93,22 +89,20 @@ export async function getResource(id, token, setResource, setError) {
  * @param {number} id the id of the resource
  * @param {string} token the access token
  * @param {function} setSubresources the function to set the retrieved resource
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listSubresources(id, token, setSubresources, setError) {
-  try {
+export async function listSubresources(id, token, setSubresources, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}/subresources`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setSubresources(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setSubresources);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -117,22 +111,20 @@ export async function listSubresources(id, token, setSubresources, setError) {
  * @param {number} deploymentId the deploymentId of the deployment
  * @param {string} token the access token
  * @param {function} setResources the function to set the retrieved resource
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listLockedResources(deploymentId, token, setResources, setError) {
-  try {
+export async function listLockedResources(deploymentId, token, setResources, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${env('API_URL')}/deployments/${deploymentId}/resources/locked`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    const data = await response.json();
-    setResources(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setResources);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -140,22 +132,21 @@ export async function listLockedResources(deploymentId, token, setResources, set
  *
  * @param {number} id the id of the resource
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteResource(id, token, setError) {
-  try {
+export async function deleteResource(id, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -164,10 +155,12 @@ export async function deleteResource(id, token, setError) {
  * @param {number} resourceId the id of the resource
  * @param {any[]} metricValues the metric values to add
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
+ * @return {Promise<boolean>} true if the request was successful
  */
-export async function addResourceMetrics(resourceId, metricValues, token, setError) {
-  try {
+export async function addResourceMetrics(resourceId, metricValues, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${resourceId}/metrics`, {
       method: 'POST',
       headers: {
@@ -176,11 +169,9 @@ export async function addResourceMetrics(resourceId, metricValues, token, setErr
       },
       body: JSON.stringify(metricValues),
     });
-    await response;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -189,10 +180,11 @@ export async function addResourceMetrics(resourceId, metricValues, token, setErr
  * @param {any[]} slos the service level objectives
  * @param {string} token the access token
  * @param {function} setResources the function to set the retrieved resources
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  */
-export async function listResourcesBySLOs(slos, token, setResources, setError) {
-  try {
+export async function listResourcesBySLOs(slos, token, setResources, setLoading, setError) {
+  const apiCall = async () => {
     const route = `${API_ROUTE}/slo`;
     const response = await fetch(route, {
       method: 'POST',
@@ -204,12 +196,9 @@ export async function listResourcesBySLOs(slos, token, setResources, setError) {
         slos: slos,
       }),
     });
-    const data = await response.json();
-    setResources(() => data);
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    await setResult(response, setResources);
+  };
+  await handleApiCall(apiCall, setLoading, setError);
 }
 
 
@@ -219,11 +208,12 @@ export async function listResourcesBySLOs(slos, token, setResources, setError) {
  * @param {number} id the id of the resource
  * @param {boolean} isLockable whether the resource should be lockable for deployments
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function updateResource(id, isLockable, token, setError) {
-  try {
+export async function updateResource(id, isLockable, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${id}`, {
       method: 'PATCH',
       headers: {
@@ -234,9 +224,7 @@ export async function updateResource(id, isLockable, token, setError) {
         is_lockable: isLockable,
       }),
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

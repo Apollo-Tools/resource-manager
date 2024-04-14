@@ -35,11 +35,11 @@ const DeploymentDetails = ({setError}) => {
   const [serviceResourceIds, setServiceResourceIds] = useState(new Set());
   const [lockedResources, setLockedResources] = useState([]);
   const router = useRouter();
-  const id = parseInt(router.query.id);
+  const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id !== undefined) {
-      void refreshDeployment(setError);
+      void refreshDeployment();
     }
   }, [id]);
 
@@ -58,15 +58,15 @@ const DeploymentDetails = ({setError}) => {
 
   useInterval(async () => {
     if (!checkTokenExpired() && deployment != null) {
-      await refreshDeployment(setError);
+      await refreshDeployment();
     }
   }, pollingDelay);
 
-  const refreshDeployment = async ({setError}) => {
+  const refreshDeployment = async () => {
     setPollingDelay(null);
     await getDeployment(id, token, setDeployment, setLoading, setError);
     await listDeploymentLogs(id, token, setLogs, setLoading, setError);
-    await listLockedResources(id, token, setLockedResources, setError);
+    await listLockedResources(id, token, setLockedResources, setLoading, setError);
   };
 
   const checkDeploymentStatus = () => {
@@ -107,7 +107,7 @@ const DeploymentDetails = ({setError}) => {
   const onClickCancel = async (id) => {
     if (!checkTokenExpired()) {
       await cancelDeployment(id, token, setLoading, setError)
-          .then(() => refreshDeployment(setError));
+          .then(() => refreshDeployment());
     }
   };
 

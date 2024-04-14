@@ -12,10 +12,10 @@ import {listFunctionTypes} from '../../lib/api/FunctionTypeService';
 import TooltipIcon from '../misc/TooltipIcon';
 
 
-const NewFunctionFrom = ({setNewFunction}) => {
+const NewFunctionFrom = ({setNewFunction, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
+  const [isLoading, setLoading] = useState();
   const [functionTypes, setFunctionTypes] = useState([]);
   const [runtimes, setRuntimes] = useState([]);
   const [editorExtensions, setEditorExtensions] = useState([]);
@@ -25,33 +25,25 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listRuntimes(token, setRuntimes, setError);
-      listFunctionTypes(token, setFunctionTypes, setError);
+      void listRuntimes(token, setRuntimes, setLoading, setError);
+      void listFunctionTypes(token, setFunctionTypes, setLoading, setError);
     }
   }, []);
 
   useEffect(() => {
     if (functionTemplate != null) {
-      form.setFieldValue('code', functionTemplate);
+      form.setFieldValue('code', functionTemplate.template);
     }
   }, [functionTemplate]);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       if (values.isFile) {
         await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
-            values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setError);
+            values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setLoading, setError);
       } else {
         await createFunctionCode(values.name, values.functionType, values.runtime, values.code, values.timeout,
-            values.memorySize, values.isPublic, token, setNewFunction, setError);
+            values.memorySize, values.isPublic, token, setNewFunction, setLoading, setError);
       }
     }
   };
@@ -64,14 +56,14 @@ const NewFunctionFrom = ({setNewFunction}) => {
         .filter((runtime) => runtime.runtime_id === form.getFieldValue('runtime'))[0];
   };
 
-  const onChangeIsFile = (value) => {
+  const onChangeIsFile = async (value) => {
     setIsFile(value);
     if (!value) {
       const currentRuntime = getCurrentRuntime();
       const extension = getEditorExtension(currentRuntime.name);
       setEditorExtensions(extension != null ? [extension] : []);
       if (!checkTokenExpired()) {
-        getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setError);
+        await getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setLoading, setError);
       }
     }
   };
@@ -190,7 +182,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
               })}
             </Select>
           </Form.Item>
-          {selectedRuntime != null && (<>
+          {selectedRuntime != null && <>
             <Form.Item
               label="Editor / Upload"
               name="isFile"
@@ -203,7 +195,12 @@ const NewFunctionFrom = ({setNewFunction}) => {
               initialValue={isFile}
               className="col-span-full mb-0"
             >
-              <Switch checked={isFile} onChange={onChangeIsFile} checkedChildren="true" unCheckedChildren="false"/>
+              <Switch
+                checked={isFile}
+                onChange={async (value) => await onChangeIsFile(value)}
+                checkedChildren="true"
+                unCheckedChildren="false"
+              />
             </Form.Item>
             {isFile ?
               <Form.Item
@@ -227,6 +224,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
                 ]}
                 getValueFromEvent={({file}) => file}
                 className="col-span-full"
+                valuePropName='file'
               >
                 <Upload
                   accept=".zip"
@@ -262,7 +260,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
                 <CodeMirror height="500px" extensions={editorExtensions}/>
               </Form.Item>
             }
-          </>)}
+          </>}
         </div>
         <Form.Item>
           <Button type="primary" htmlType="submit">
@@ -276,6 +274,7 @@ const NewFunctionFrom = ({setNewFunction}) => {
 
 NewFunctionFrom.propTypes = {
   setNewFunction: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default NewFunctionFrom;

@@ -92,7 +92,7 @@ export async function deleteEnsemble(id, token, setLoading, setError) {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
+    return checkResponseOk(response);
   };
   return await handleApiCall(apiCall, setLoading, setError);
 }
@@ -105,7 +105,7 @@ export async function deleteEnsemble(id, token, setLoading, setError) {
  * @param {function} setValidationData the function to set the validation data
  * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
- * @return {Promise<List<*>>} a list of that contains a validation entry for each resource
+ * @return {Promise<boolean>} true if all resources are valid else false
  */
 export async function validateEnsemble(id, token, setValidationData, setLoading, setError) {
   const apiCall = async () => {
@@ -120,5 +120,5 @@ export async function validateEnsemble(id, token, setValidationData, setLoading,
     setValidationData?.(data);
     return data.map((result) => result.is_valid).reduce((prev, current) => prev && current);
   };
-  await handleApiCall(apiCall, setLoading, setError);
+  return await handleApiCall(apiCall, setLoading, setError);
 }

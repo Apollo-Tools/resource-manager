@@ -1,40 +1,31 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
-import {Button, Form, Input, Typography, message} from 'antd';
+import {Button, Form, Input, Typography, App} from 'antd';
 import {siteTitle} from '../../components/misc/Sidebar';
 import Head from 'next/head';
 import Link from 'next/link';
 import {signUp} from '../../lib/api/AccountService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import {successNotification} from '../../lib/misc/NotificationProvider';
 
 const {Title} = Typography;
 
 const NewAccount = ({setError}) => {
+  const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [isLoading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
-  const [response, setResponse] = useState();
   const [form] = Form.useForm();
-
-  useEffect(() => {
-    if (response && response.ok) {
-      messageApi.open({
-        type: 'success',
-        content: 'Account has been created!',
-      });
-      form.resetFields();
-    } else if (response && !response.ok) {
-      messageApi.open({
-        type: 'error',
-        content: 'Signup failed!',
-      });
-    }
-  }, [response]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await signUp(values.username, values.password, token, setResponse, setLoading, setError);
+      await signUp(values.username, values.password, token, setLoading, setError)
+          .then((result) => {
+            if (result) {
+              successNotification(notification, 'Account has been created');
+              form.resetFields();
+            }
+          });
     }
   };
 
@@ -55,7 +46,6 @@ const NewAccount = ({setError}) => {
       <Head>
         <title>{`${siteTitle}: Signup`}</title>
       </Head>
-      {contextHolder}
       <div className="mb-6">
         <Title level={3} className="text-center m-0">Resource Manager</Title>
         <Title level={4} className="text-center m-0">Apollo Tools</Title>

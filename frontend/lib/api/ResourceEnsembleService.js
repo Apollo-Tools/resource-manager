@@ -1,4 +1,5 @@
 import env from '@beam-australia/react-env';
+import {checkResponseOk, handleApiCall} from './ApiHandler';
 const API_ROUTE = `${env('API_URL')}/ensembles`;
 
 /**
@@ -7,22 +8,21 @@ const API_ROUTE = `${env('API_URL')}/ensembles`;
  * @param {number} ensembleId the id of the ensemble
  * @param {boolean} resourceId the id of the resource
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function addResourceToEnsemble(ensembleId, resourceId, token, setError) {
-  try {
+export async function addResourceToEnsemble(ensembleId, resourceId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${ensembleId}/resources/${resourceId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }
 
 /**
@@ -31,20 +31,19 @@ export async function addResourceToEnsemble(ensembleId, resourceId, token, setEr
  * @param {number} ensembleId the id of the ensemble
  * @param {boolean} resourceId the id of the resource
  * @param {string} token the access token
+ * @param {function} setLoading the function to set the loading state
  * @param {function} setError the function to set the error if one occurred
  * @return {Promise<boolean>} true if the request was successful
  */
-export async function deleteResourceFromEnsemble(ensembleId, resourceId, token, setError) {
-  try {
+export async function deleteResourceFromEnsemble(ensembleId, resourceId, token, setLoading, setError) {
+  const apiCall = async () => {
     const response = await fetch(`${API_ROUTE}/${ensembleId}/resources/${resourceId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.ok;
-  } catch (error) {
-    setError(true);
-    console.log(error);
-  }
+    return checkResponseOk(response);
+  };
+  return await handleApiCall(apiCall, setLoading, setError);
 }

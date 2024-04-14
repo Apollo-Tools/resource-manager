@@ -30,23 +30,18 @@ const checkMetricIsSelected = (metrics, form, name) => {
   return getMetricById(metrics, form.getFieldValue('metricValues')[name]?.metric) != null;
 };
 
-const AddMetricValuesForm = ({
-  resource,
-  excludeMetricIds,
-  setFinished,
-  isNewResource,
-}) => {
+const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewResource, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [filteredMetrics, setFilteredMetrics] = useState([]);
-  const [error, setError] = useState(false);
+  const [isLoading, setLoading] = useState(false);
   const [requiredSelected, setRequiredSelected] = useState(false);
   Form.useWatch('basic', form);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setError);
+      void listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setLoading, setError);
     }
   }, [excludeMetricIds]);
 
@@ -93,9 +88,9 @@ const AddMetricValuesForm = ({
                         metricValue.value};
       }
     });
-    await addResourceMetrics(resource.resource_id, requestBody, token, setError)
-        .then(() => {
-          if (!error) {
+    await addResourceMetrics(resource.resource_id, requestBody, token, setLoading, setError)
+        .then((result) => {
+          if (result) {
             setFinished(true);
             form.resetFields();
           }
@@ -235,6 +230,7 @@ AddMetricValuesForm.propTypes = {
   excludeMetricIds: PropTypes.arrayOf(PropTypes.number.isRequired),
   setFinished: PropTypes.func.isRequired,
   isNewResource: PropTypes.bool,
+  setError: PropTypes.func.isRequired,
 };
 
 export default AddMetricValuesForm;

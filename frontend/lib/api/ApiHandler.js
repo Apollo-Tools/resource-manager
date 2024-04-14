@@ -21,10 +21,13 @@ export async function handleApiCall(callback, setLoading, setError) {
  * Check if a response is valid and throw an Error if it is not.
  *
  * @param {Response} response the response
+ * @return {Promise<boolean>} true if the response is valid
  */
 export async function checkResponseOk(response) {
   if (!response.ok) {
     throw new Error(await response.text());
+  } else {
+    return true;
   }
 }
 

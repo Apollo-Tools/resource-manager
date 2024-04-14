@@ -1,28 +1,20 @@
 import {Button, Form, Upload} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import PropTypes from 'prop-types';
 import {updateFunctionUpload} from '../../lib/api/FunctionService';
 import {PlusOutlined} from '@ant-design/icons';
 
-const UpdateFunctionFileForm = ({func, reloadFunction}) => {
+const UpdateFunctionFileForm = ({func, reloadFunction, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
   const [isModified, setModified] = useState(false);
   const [fileList, setFileList] = useState([]);
-  const [error, setError] = useState(false);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
+  const [isLoading, setLoading] = useState(false);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await updateFunctionUpload(func.function_id, values.upload.originFileObj, token, setError)
+      await updateFunctionUpload(func.function_id, values.upload.originFileObj, token, setLoading, setError)
           .then(() => reloadFunction().then(() => setModified(false)))
           .then(() => setFileList([]));
     }
@@ -71,6 +63,7 @@ const UpdateFunctionFileForm = ({func, reloadFunction}) => {
                 ]}
                 getValueFromEvent={({file}) => file}
                 className="lg:col-span-12 col-span-6"
+                valuePropName='file'
               >
                 <Upload
                   accept=".zip"
@@ -109,6 +102,7 @@ const UpdateFunctionFileForm = ({func, reloadFunction}) => {
 UpdateFunctionFileForm.propTypes = {
   func: PropTypes.object.isRequired,
   reloadFunction: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default UpdateFunctionFileForm;

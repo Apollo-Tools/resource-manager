@@ -1,37 +1,28 @@
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {LockOutlined} from '@ant-design/icons';
-import {Button, Form, Input, message, Space} from 'antd';
+import {App, Button, Form, Input, Space} from 'antd';
 import {changePassword} from '../../lib/api/AccountService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
+import {successNotification} from '../../lib/misc/NotificationProvider';
 
 const ResetPasswordForm = ({setError}) => {
+  const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [form] = Form.useForm();
-  const [response, setResponse] = useState();
   const [show, setShow] = useState(false);
   const [isLoading, setLoading] = useState(false);
-  const [messageApi, contextHolder] = message.useMessage();
-
-  useEffect(() => {
-    if (response && response.ok) {
-      messageApi.open({
-        type: 'success',
-        content: 'Password change was successful!',
-      });
-      setShow(false);
-      form.resetFields();
-    } else if (response && !response.ok) {
-      messageApi.open({
-        type: 'error',
-        content: 'Old password was wrong!',
-      });
-    }
-  }, [response]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await changePassword(values.oldPassword, values.newPassword, token, setResponse, setLoading, setError);
+      await changePassword(values.oldPassword, values.newPassword, token, setLoading, setError)
+          .then((result) => {
+            if (result) {
+              successNotification(notification, 'Password change was successful!');
+              setShow(false);
+              form.resetFields();
+            }
+          });
     }
   };
 
@@ -42,7 +33,6 @@ const ResetPasswordForm = ({setError}) => {
 
   return (
     <div>
-      {contextHolder}
       { show ?
         <>
           <Form

@@ -7,26 +7,18 @@ import {ClusterOutlined, ExclamationCircleFilled, LockTwoTone, UnlockTwoTone} fr
 import Link from 'next/link';
 import BoolDataDisplay from '../misc/BoolDataDisplay';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {updateResource} from '../../lib/api/ResourceService';
 
 const {confirm} = Modal;
 
-const ResourceDetailsCard = ({resource, setResource}) => {
+const ResourceDetailsCard = ({resource, setResource, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState(false);
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
+  const [isLoading, setLoading] = useState(false);
 
   const setResourceLockable = (isLockable) => {
     if (!checkTokenExpired()) {
-      updateResource(resource.resource_id, isLockable, token, setError)
+      updateResource(resource.resource_id, isLockable, token, setLoading, setError)
           .then((result) => {
             if (result === true) {
               setResource((prevState) => ({
@@ -91,6 +83,7 @@ const ResourceDetailsCard = ({resource, setResource}) => {
 ResourceDetailsCard.propTypes = {
   resource: PropTypes.object.isRequired,
   setResource: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
 export default ResourceDetailsCard;

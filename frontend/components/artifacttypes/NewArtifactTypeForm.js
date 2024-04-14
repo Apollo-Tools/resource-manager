@@ -1,30 +1,22 @@
 import {Button, Form, Input} from 'antd';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 import {createServiceType} from '../../lib/api/ServiceTypeService';
 import {createFunctionType} from '../../lib/api/FunctionTypeService';
 
-const NewFunctionFrom = ({setNewArtifactType, artifact}) => {
+const NewArtifactTypeForm = ({setNewArtifactType, artifact, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [error, setError] = useState();
-
-  // TODO: improve error handling
-  useEffect(() => {
-    if (error) {
-      console.log('Unexpected error');
-      setError(false);
-    }
-  }, [error]);
+  const [isLoading, setLoading] = useState();
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       if (artifact === 'service') {
-        await createServiceType(values.name, token, setNewArtifactType, setError);
+        await createServiceType(values.name, token, setNewArtifactType, setLoading, setError);
       } else {
-        await createFunctionType(values.name, token, setNewArtifactType, setError);
+        await createFunctionType(values.name, token, setNewArtifactType, setLoading, setError);
       }
     }
   };
@@ -62,9 +54,10 @@ const NewFunctionFrom = ({setNewArtifactType, artifact}) => {
   );
 };
 
-NewFunctionFrom.propTypes = {
+NewArtifactTypeForm.propTypes = {
   artifact: PropTypes.oneOf(['service', 'function']).isRequired,
   setNewArtifactType: PropTypes.func.isRequired,
+  setError: PropTypes.func.isRequired,
 };
 
-export default NewFunctionFrom;
+export default NewArtifactTypeForm;
