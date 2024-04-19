@@ -1,4 +1,4 @@
-import {Button, Space, Table, Tooltip} from 'antd';
+import {Button, Empty, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, InfoCircleOutlined} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
@@ -7,6 +7,7 @@ import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import DateColumnRender from '../misc/DateColumnRender';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 
@@ -18,6 +19,7 @@ const ResourceTable = ({
   customButton,
   getRowClassname,
   resourceType = 'main',
+  isLoading = false,
 }) => {
   const [envFilter, setEnvFilter] = useState([]);
   const [typeFilter, setTypeFilter] = useState([]);
@@ -55,6 +57,7 @@ const ResourceTable = ({
         }
         return '';
       }}
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="resource_id" key="id"
         sorter={(a, b) => a.resource_id - b.resource_id}
@@ -144,6 +147,7 @@ ResourceTable.propTypes={
   customButton: PropTypes.shape({onClick: PropTypes.func, icon: PropTypes.node, tooltip: PropTypes.node}),
   getRowClassname: PropTypes.func,
   resourceType: PropTypes.oneOf(['main', 'sub', 'all', 'ensemble']),
+  isLoading: PropTypes.bool,
 };
 
 

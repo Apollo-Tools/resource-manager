@@ -55,7 +55,7 @@ const Resources = ({setError}) => {
       <div className="default-card">
         <Typography.Title level={2}>All Resources</Typography.Title>
         <NewEntityButton name="Resource"/>
-        <ResourceTable resources={resources} onDelete={showDeleteConfirm} hasActions/>
+        <ResourceTable resources={resources} onDelete={showDeleteConfirm} hasActions isLoading={isLoading}/>
       </div>
     </>
   );

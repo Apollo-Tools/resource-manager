@@ -41,6 +41,14 @@
   .default-card {
     @apply card container w-full md:w-11/12 max-w-7xl p-10 min-h-[700px]
   }
+
+  .skeleton .ant-skeleton-title {
+    @apply bg-gradient-to-r from-gray-300 to-gray-100 animate-pulse !important
+  }
+
+  .skeleton .ant-skeleton-paragraph > li {
+    @apply bg-gradient-to-r from-gray-300 to-gray-100 animate-pulse !important
+  }
 }
 
 html,

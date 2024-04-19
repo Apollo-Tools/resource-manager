@@ -32,13 +32,13 @@ const login = ({setError}) => {
   };
 
   return (
-    <div className="card container md:w-1/2 max-w-xl pt-5 pl-10 pr-10 pb-1.5 border-2">
+    <div className="card container md:w-1/2 max-w-xl pt-5 pl-10 pr-10 pb-1.5 border-2 mt-10">
       <Head>
         <title>{`${siteTitle}: Login`}</title>
       </Head>
-      <div className="mb-6">
-        <Title level={3} className="text-center m-0">Resource Manager</Title>
-        <Title level={4} className="text-center m-0">Apollo Tools</Title>
+      <div className="">
+        <Title level={3} className="text-center m-0">Welcome Back</Title>
+        <Title level={5} className="text-center m-0">Sign in to your account!</Title>
       </div>
       <Form
         onFinish={onFinish}

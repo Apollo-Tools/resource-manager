@@ -1,4 +1,4 @@
-import {Button, Modal, Space, Table, Tag, Tooltip} from 'antd';
+import {Button, Empty, Modal, Space, Table, Tag, Tooltip} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
@@ -13,6 +13,7 @@ import {ICON_GREEN, ICON_RED} from '../misc/Constants';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
 import DateColumnRender from '../misc/DateColumnRender';
 import PropTypes from 'prop-types';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -69,6 +70,7 @@ const AccountTable = ({setError}) => {
       dataSource={accounts}
       rowKey={(record) => record.account_id}
       size="small"
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="account_id" key="id"
         sorter={(a, b) => a.account_id - b.account_id}
