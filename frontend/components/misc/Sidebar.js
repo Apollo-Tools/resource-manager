@@ -16,7 +16,8 @@ import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import LoadingSpinner from './LoadingSpinner';
-const {Content, Footer, Sider} = Layout;
+import Image from 'next/image';
+const {Content, Footer, Sider, Header} = Layout;
 
 export const siteTitle = 'Apollo Tools - Resource Manager';
 
@@ -67,32 +68,44 @@ const Sidebar = ({children}) => {
     </Layout>;
   }
 
+  const content = (
+    <>
+      <Content>
+        <main>{children}</main>
+      </Content>
+      <Footer className="text-center bg-transparent">
+        Apollo Tools ©2024
+      </Footer>
+    </>
+  );
+
   return (
-    <Layout className="min-h-screen">
+    <Layout hasSider className="min-h-screen">
       {authenticated &&
-      <Sider collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+      <Sider className="h-screen z-[1001] fixed inset-y-0 left-0 mt-16" collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme='dark'>
         <Menu theme="dark"
           items={items}
           mode="inline"
-          className="mt-2"
           selectable={false}
           openKeys={['1', '2']}
           expandIcon={<></>}
         />
       </Sider>}
-      <Layout className="site-layout">
-        <div
-          className="h-12 flex justify-center items-center p-0 bg-primary"
-        >
-          <div className="text-white text-sm md:text-xl text-center font-semibold">{siteTitle}</div>
-        </div>
-        <Content className="md:ml-4">
-          <main>{children}</main>
-        </Content>
-        <Footer className="text-center bg-transparent">
-          Apollo Tools ©2024
-        </Footer>
-      </Layout>
+      <Header
+        className="h-16 pl-3 fixed top-0 z-[1001] w-full flex gap-5
+         items-center bg-gradient-to-r from-primary via-primary to-blue-900"
+      >
+        <Image src="/rm_logo_white.svg" height="64" width="64" alt="Logo"/>
+        <div className="w-full text-white text-lg text-start">{siteTitle}</div>
+      </Header>
+      {authenticated ?
+        <Layout className="site-layout ml-[200px] mt-9">
+          {content}
+        </Layout> :
+        <Layout className="site-layout mt-9">
+          {content}
+        </Layout>
+      }
     </Layout>
   );
 };

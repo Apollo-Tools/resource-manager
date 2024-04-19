@@ -1,7 +1,7 @@
 import {
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import {Button, Table, Space, Tooltip} from 'antd';
+import {Button, Table, Space, Tooltip, Empty} from 'antd';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
 import {listMyDeployments} from '../../lib/api/DeploymentService';
@@ -9,6 +9,7 @@ import Link from 'next/link';
 import DeploymentStatusBadge from './DeploymentStatusBadge';
 import DateColumnRender from '../misc/DateColumnRender';
 import PropTypes from 'prop-types';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 
@@ -16,7 +17,7 @@ const DeploymentTable = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [deployments, setDeployments] = useState([]);
   const [statusFilter, setStatusFilter] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
@@ -37,7 +38,12 @@ const DeploymentTable = ({setError}) => {
   };
 
   return (
-    <Table dataSource={ deployments } rowKey={ (record) => record.deployment_id } size="small">
+    <Table
+      dataSource={ deployments }
+      rowKey={ (record) => record.deployment_id }
+      size="small"
+      locale={{emptyText: isLoading ? <TableSkeleton/> : <Empty />}}
+    >
       <Column title="Id" dataIndex="deployment_id" key="id"
         sorter={ (a, b) => a.deployment_id - b.deployment_id }
       />

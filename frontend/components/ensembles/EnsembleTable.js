@@ -1,4 +1,4 @@
-import {Button, Modal, Space, Table, Tooltip} from 'antd';
+import {Button, Empty, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {
   DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, SyncOutlined,
@@ -10,6 +10,7 @@ import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import PropTypes from 'prop-types';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -86,6 +87,7 @@ const EnsembleTable = ({rowSelection, setError}) => {
       rowKey={(record) => record.ensemble_id}
       rowSelection={rowSelection}
       size='small'
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="ensemble_id" key="id"
         sorter={(a, b) => a.ensemble_id - b.ensemble_id}

@@ -1,4 +1,4 @@
-import {Button, Modal, Table, Tooltip} from 'antd';
+import {Button, Empty, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
@@ -7,6 +7,7 @@ import {deleteFunctionType, listFunctionTypes} from '../../lib/api/FunctionTypeS
 import PropTypes from 'prop-types';
 import {deleteServiceType, listServiceTypes} from '../../lib/api/ServiceTypeService';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -61,6 +62,7 @@ const ArtifactTypeTable = ({artifact, setError}) => {
       dataSource={artifactTypes}
       rowKey={(record) => record.artifact_type_id}
       size="small"
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="artifact_type_id" key="id"
         sorter={(a, b) => a.artifact_type_id - b.artifact_type_id}

@@ -46,10 +46,7 @@ const NewAccount = ({setError}) => {
       <Head>
         <title>{`${siteTitle}: Signup`}</title>
       </Head>
-      <div className="mb-6">
-        <Title level={3} className="text-center m-0">Resource Manager</Title>
-        <Title level={4} className="text-center m-0">Apollo Tools</Title>
-      </div>
+      <Title level={3} className="text-center m-0">Create a new Account</Title>
       <Form
         onFinish={onFinish}
         onFinishFailed={onFinishFailed}

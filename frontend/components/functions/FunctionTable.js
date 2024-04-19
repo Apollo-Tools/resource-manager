@@ -1,4 +1,4 @@
-import {Button, Modal, Space, Table, Tooltip} from 'antd';
+import {Button, Empty, Modal, Space, Table, Tooltip} from 'antd';
 import Link from 'next/link';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
@@ -10,6 +10,7 @@ import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import RuntimeIcon from '../misc/RuntimeIcon';
 import DateColumnRender from '../misc/DateColumnRender';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -111,6 +112,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
       rowKey={(record) => record.function_id}
       expandable={isExpandable ? expandedRowRender : null}
       size="small"
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="function_id" key="id"
         sorter={(a, b) => a.function_id - b.function_id}

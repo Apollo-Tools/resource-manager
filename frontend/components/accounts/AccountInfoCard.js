@@ -10,22 +10,25 @@ import AddNamespaceForm from './AddNamespaceForm';
 import {getAccount, getMyAccount} from '../../lib/api/AccountService';
 import {listMyNamespaces, listNamespaces} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
+import TableSkeleton from '../misc/TableSkeleton';
+import ContentSkeleton from '../misc/ContentSkeleton';
 
 const AccountInfoCard = ({isAdmin, accountId, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [account, setAccount] = useState();
   const [accountNamespaces, setAccountNamespaces] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isAccountLoading, setAccountLoading] = useState(true);
+  const [isNamespacesLoading, setNamespacesLoading] = useState(true);
   const [isFinished, setFinished] = useState(false);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (isAdmin && accountId) {
-        void getAccount(accountId, token, setAccount, setLoading, setError);
-        void listNamespaces(accountId, token, setAccountNamespaces, setLoading, setError);
+        void getAccount(accountId, token, setAccount, setAccountLoading, setError);
+        void listNamespaces(accountId, token, setAccountNamespaces, setNamespacesLoading, setError);
       } else {
-        void getMyAccount(token, setAccount, setLoading, setError);
-        void listMyNamespaces(token, setAccountNamespaces, setLoading, setError);
+        void getMyAccount(token, setAccount, setAccountLoading, setError);
+        void listMyNamespaces(token, setAccountNamespaces, setNamespacesLoading, setError);
       }
     }
   }, []);
@@ -33,23 +36,20 @@ const AccountInfoCard = ({isAdmin, accountId, setError}) => {
   useEffect(() => {
     if (isFinished) {
       if (isAdmin && accountId) {
-        void listNamespaces(accountId, token, setAccountNamespaces, setLoading, setError);
+        void listNamespaces(accountId, token, setAccountNamespaces, setNamespacesLoading, setError);
       } else {
-        void listMyNamespaces(token, setAccountNamespaces, setLoading, setError);
+        void listMyNamespaces(token, setAccountNamespaces, setNamespacesLoading, setError);
       }
       setFinished(false);
     }
   }, [isFinished]);
 
-  if (!account) {
-    return;
-  }
   return (
     <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
       <Space className="col-span-6" direction="vertical" size="large">
-        <TextDataDisplay label="Username" value={account.username} />
-        <TextDataDisplay label="Role" value={account.role.role} />
-        <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={account.created_at} />} />
+        <TextDataDisplay label="Username" value={account?.username} isLoading={isAccountLoading}/>
+        <TextDataDisplay label="Role" value={account?.role.role} isLoading={isAccountLoading}/>
+        <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={account?.created_at} />} isLoading={isAccountLoading} />
       </Space>
       <div className="col-span-6">
         <DataDisplay label={'Reset Password'}>
@@ -62,16 +62,18 @@ const AccountInfoCard = ({isAdmin, accountId, setError}) => {
           <NamespaceTable
             namespaces={accountNamespaces}
             setFinished={setFinished}
-            accountId={account.account_id}
+            accountId={account?.account_id}
             hasActions={isAdmin}
             setError={setError}
+            isLoading={isNamespacesLoading}
+            setLoading={setNamespacesLoading}
           />
         </DataDisplay>
       </div>
       <div className="col-span-full" >
         {accountNamespaces &&
           <AddNamespaceForm
-            accountId={account.account_id}
+            accountId={account?.account_id}
             existingNamespaces={accountNamespaces}
             setFinished={setFinished}
             setError={setError}

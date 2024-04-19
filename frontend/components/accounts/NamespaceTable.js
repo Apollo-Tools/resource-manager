@@ -1,17 +1,16 @@
-import {Button, Modal, Table, Tooltip} from 'antd';
+import {Button, Empty, Modal, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
-import {useState} from 'react';
 import Link from 'next/link';
 import {deleteNamespaceFromAccount} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 const {Column} = Table;
 const {confirm} = Modal;
 
-const NamespaceTable = ({namespaces, setFinished, accountId, hasActions, setError}) => {
+const NamespaceTable = ({namespaces, setFinished, accountId, hasActions, setError, isLoading, setLoading}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState();
 
   const showDeleteConfirm = (id) => {
     confirm({
@@ -43,6 +42,7 @@ const NamespaceTable = ({namespaces, setFinished, accountId, hasActions, setErro
       dataSource={namespaces}
       rowKey={(namespace) => namespace.namespace_id}
       size="small"
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="namespace_id" key="id"
         sorter={(a, b) => a.namespace_id - b.namespace_id}
@@ -81,6 +81,8 @@ NamespaceTable.propTypes = {
   accountId: PropTypes.number.isRequired,
   hasActions: PropTypes.bool.isRequired,
   setError: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  setLoading: PropTypes.func.isRequired,
 };
 
 export default NamespaceTable;

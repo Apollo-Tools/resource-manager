@@ -1,10 +1,11 @@
 import {useEffect, useState} from 'react';
-import {Button, Form, Input} from 'antd';
+import {Button, Form, Input, Modal} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {deployResources} from '../../lib/api/DeploymentService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import NothingToSelectCard from './NothingToSelectCard';
+import LoadingSpinner from '../misc/LoadingSpinner';
 
 
 const AddCredentials = ({functionResources, serviceResources, lockResources, ensembleId, alertingUrl, next, prev,
@@ -87,6 +88,9 @@ const AddCredentials = ({functionResources, serviceResources, lockResources, ens
 
   return (
     <>
+      <Modal open={isLoading} footer={null} closable={false}>
+        <LoadingSpinner isCard={false}/>
+      </Modal>;
       <Form
         form={form}
         name="dockerCredentials"

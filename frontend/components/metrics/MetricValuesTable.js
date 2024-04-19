@@ -1,4 +1,4 @@
-import {Button, Modal, Table} from 'antd';
+import {Button, Empty, Modal, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import {deleteResourceMetric} from '../../lib/api/MetricValueService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
@@ -6,6 +6,7 @@ import {useState} from 'react';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -40,7 +41,11 @@ const MetricValuesTable = ({resourceId, metricValues, setMetricValues, setError}
   };
 
   return (
-    <Table dataSource={metricValues} rowKey={(mv) => mv.metric_value_id}>
+    <Table
+      dataSource={metricValues}
+      rowKey={(mv) => mv.metric_value_id}
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
+    >
       <Column title="Metric" dataIndex={['metric', 'metric']} key="metric"
         sorter={(a, b) =>
           a.metric.metric.localeCompare(b.metric.metric)}
