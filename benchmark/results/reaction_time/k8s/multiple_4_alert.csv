@@ -1,4 +1,4 @@
-timestamp,resource,metric,value
+deployment,timestamp,resource,metric,value
 1,1710811384000,9,cpu%,12.7438033
 1,1710811384000,7,cpu%,14.436241325
 1,1710811384000,8,cpu%,5.745109975
