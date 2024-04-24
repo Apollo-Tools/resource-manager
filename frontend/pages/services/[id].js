@@ -12,20 +12,20 @@ const ServiceDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [service, setService] = useState();
   const [isFinished, setFinished] = useState(false);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(true);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      void getService(id, token, setService, setLoading, setError);
+      void getService(Number(id), token, setService, setLoading, setError);
     }
   }, [id]);
 
   useEffect(() => {
     if (isFinished) {
       setFinished(false);
-      void getService(id, token, setService, setLoading, setError);
+      void getService(Number(id), token, setService, setLoading, setError);
     }
   }, [isFinished]);
 
@@ -35,17 +35,16 @@ const ServiceDetails = ({setError}) => {
         <title>{`${siteTitle}: Service Details`}</title>
       </Head>
       <div className="default-card">
-        <Typography.Title level={2}>Service Details ({service?.service_id})</Typography.Title>
+        <Typography.Title level={2}>Service Details ({id})</Typography.Title>
         <Divider />
-        { service &&
-          <NewUpdateServiceForm
-            setNewService={setService}
-            service={service}
-            mode='update'
-            setFinished={setFinished}
-            setError={setError}
-          />
-        }
+        <NewUpdateServiceForm
+          setNewService={setService}
+          service={service}
+          mode='update'
+          setFinished={setFinished}
+          setError={setError}
+          isLoading={isLoading}
+        />
       </div>
     </>
   );

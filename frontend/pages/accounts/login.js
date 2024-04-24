@@ -27,10 +27,6 @@ const login = ({setError}) => {
     await getLogin(values.username, values.password, loginUser, setLoading, setError);
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
   return (
     <div className="card container md:w-1/2 max-w-xl pt-5 pl-10 pr-10 pb-1.5 border-2 mt-10">
       <Head>
@@ -42,7 +38,6 @@ const login = ({setError}) => {
       </div>
       <Form
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         layout="vertical"
       >
         <Form.Item
@@ -70,7 +65,7 @@ const login = ({setError}) => {
           <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" className="float-right">
+          <Button type="primary" htmlType="submit" className="float-right" loading={isLoading}>
             Login
           </Button>
         </Form.Item>

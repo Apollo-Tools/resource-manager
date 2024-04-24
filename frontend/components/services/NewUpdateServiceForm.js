@@ -8,14 +8,22 @@ import {MinusCircleOutlined, PlusOutlined} from '@ant-design/icons';
 import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 import TooltipIcon from '../misc/TooltipIcon';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 import {listServiceTypes} from '../../lib/api/ServiceTypeService';
 
 
-const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished, setError}) => {
+const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished, isLoading = false,
+  setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState(false);
+  const [isInsideLoading, setInsideLoading] = useState(
+      {
+        listServiceTypes: true,
+        listK8sServiceTypes: true,
+        createUpdateService: false,
+      },
+  );
   const [k8sServiceTypes, setK8sServiceTypes] = useState([]);
   const [serviceTypes, setServiceTypes] = useState([]);
   const [initialPorts, setInitialPorts] = useState();
@@ -24,8 +32,9 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listServiceTypes(token, setServiceTypes, setLoading, setError);
-      void listK8sServiceTypes(token, setK8sServiceTypes, setLoading, setError);
+      void listServiceTypes(token, setServiceTypes, updateLoadingState('listServiceTypes', setInsideLoading), setError);
+      void listK8sServiceTypes(token, setK8sServiceTypes, updateLoadingState('listK8sServiceTypes', setInsideLoading),
+          setError);
     }
   }, []);
 
@@ -37,14 +46,15 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
           servicePort: port.split(':')[1],
         };
       }));
+      form.resetFields();
     }
   }, [service]);
 
   useEffect(() => {
-    if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
+    if (mode==='update' && service!=null && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
       setSelectedK8sServiceType(service.k8s_service_type);
     }
-  }, [k8sServiceTypes]);
+  }, [k8sServiceTypes, service]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
@@ -57,17 +67,15 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
       if (mode === 'new') {
         await createService(values.serviceType, values.name, values.image, values.replicas, ports, values.cpu,
             values.memory, values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setNewService,
-            setLoading, setError);
+            updateLoadingState('createUpdateService', setInsideLoading), setError);
       } else {
         await updateService(service.service_id, values.replicas, ports, values.cpu, values.memory,
-            values.k8sServiceType, envVars, volumeMounts, values.isPublic, token, setLoading, setError);
+            values.k8sServiceType, envVars, volumeMounts, values.isPublic, token,
+            updateLoadingState('createUpdateService', setInsideLoading), setError);
       }
       setFinished?.(true);
       setModified(false);
     }
-  };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
   };
 
   const onChangeK8sServiceType = (value) => {
@@ -78,7 +86,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
   const onReset = () => {
     form.resetFields();
-    if (mode==='update' && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
+    if (mode==='update' && service!=null && k8sServiceTypes!=null && k8sServiceTypes.length>0) {
       setSelectedK8sServiceType(service.k8s_service_type);
     }
     setModified(false);
@@ -90,7 +98,6 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
         name="newServiceForm"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
         onChange={() => setModified(true)}
@@ -109,7 +116,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
                 ]}
                 className="col-span-6"
               >
-                <Select className="w-40">
+                <Select className="w-40" loading={isInsideLoading['listServiceTypes']}>
                   {serviceTypes.map((serviceType) => {
                     return (
                       <Select.Option value={serviceType.artifact_type_id} key={serviceType.artifact_type_id} >
@@ -146,15 +153,21 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
               </Form.Item>
             </>) :
             <>
-              <TextDataDisplay label="Service Type" value={service.service_type.name} className="col-span-6"/>
-              <TextDataDisplay label="Name" value={service.name} className="col-span-6"/>
-              <TextDataDisplay label="Image" value={service.image} className="col-span-6"/>
-              <TextDataDisplay label="Created at"
-                value={<DateFormatter dateTimestamp={service.created_at} includeTime/>}
-                className="col-span-6"/>
+              <TextDataDisplay label="Service Type" value={service?.service_type.name} className="col-span-6"
+                isLoading={isLoading}/>
+              <TextDataDisplay label="Name" value={service?.name} className="col-span-6" isLoading={isLoading}/>
+              <TextDataDisplay label="Image" value={service?.image} className="col-span-6" isLoading={isLoading}/>
+              <TextDataDisplay
+                label="Created at"
+                value={service && <DateFormatter dateTimestamp={service.created_at} includeTime/>}
+                className="col-span-6"
+                isLoading={isLoading}
+              />
               <TextDataDisplay label="Updated at"
-                value={<DateFormatter dateTimestamp={service.updated_at} includeTime/>}
-                className="col-span-6"/>
+                value={service && <DateFormatter dateTimestamp={service.updated_at} includeTime/>}
+                className="col-span-6"
+                isLoading={isLoading}
+              />
             </>
           }
           <Divider className="col-span-full"/>
@@ -422,7 +435,7 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
             ]}
             className="col-span-6"
           >
-            <Select className="w-40" onSelect={onChangeK8sServiceType}>
+            <Select className="w-40" onSelect={onChangeK8sServiceType} loading={isInsideLoading['listK8sServiceTypes']}>
               {k8sServiceTypes.sort((st1, st2) => st1.name.localeCompare(st2.name))
                   .map((k8sServiceType) => {
                     return (
@@ -533,7 +546,12 @@ const NewUpdateServiceForm = ({setNewService, service, mode = 'new', setFinished
 
         <Form.Item>
           <Space size={'large'}>
-            <Button type="primary" htmlType="submit" disabled={!isModified && mode === 'update'}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              disabled={!isModified && mode === 'update'}
+              loading={isInsideLoading['createUpdateService']}
+            >
               {mode === 'new' ? 'Create' : 'Update'}
             </Button>
             {
@@ -554,6 +572,7 @@ NewUpdateServiceForm.propTypes = {
   service: PropTypes.object,
   mode: PropTypes.oneOf(['new', 'update']),
   setFinished: PropTypes.func,
+  isLoading: PropTypes.bool,
   setError: PropTypes.func.isRequired,
 };
 

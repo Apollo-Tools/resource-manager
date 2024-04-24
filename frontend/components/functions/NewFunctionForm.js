@@ -10,12 +10,20 @@ import {PlusOutlined} from '@ant-design/icons';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 import {listFunctionTypes} from '../../lib/api/FunctionTypeService';
 import TooltipIcon from '../misc/TooltipIcon';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
+import LoadingSpinner from '../misc/LoadingSpinner';
 
 
 const NewFunctionFrom = ({setNewFunction, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState();
+  const [isLoading, setLoading] = useState(
+      {
+        listRuntimes: true,
+        listFunctionTypes: true,
+        createFunction: false,
+        getRuntimeTemplate: true,
+      });
   const [functionTypes, setFunctionTypes] = useState([]);
   const [runtimes, setRuntimes] = useState([]);
   const [editorExtensions, setEditorExtensions] = useState([]);
@@ -25,8 +33,9 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listRuntimes(token, setRuntimes, setLoading, setError);
-      void listFunctionTypes(token, setFunctionTypes, setLoading, setError);
+      void listRuntimes(token, setRuntimes, updateLoadingState('listRuntimes', setLoading), setError);
+      void listFunctionTypes(token, setFunctionTypes, updateLoadingState('listFunctionTypes', setLoading),
+          setError);
     }
   }, []);
 
@@ -40,15 +49,14 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
     if (!checkTokenExpired()) {
       if (values.isFile) {
         await createFunctionUpload(values.name, values.functionType, values.runtime, values.upload.originFileObj,
-            values.timeout, values.memorySize, values.isPublic, token, setNewFunction, setLoading, setError);
+            values.timeout, values.memorySize, values.isPublic, token, setNewFunction,
+            updateLoadingState('createFunction', setLoading), setError);
       } else {
         await createFunctionCode(values.name, values.functionType, values.runtime, values.code, values.timeout,
-            values.memorySize, values.isPublic, token, setNewFunction, setLoading, setError);
+            values.memorySize, values.isPublic, token, setNewFunction,
+            updateLoadingState('createFunction', setLoading), setError);
       }
     }
-  };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
   };
 
   const getCurrentRuntime = () => {
@@ -63,14 +71,21 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
       const extension = getEditorExtension(currentRuntime.name);
       setEditorExtensions(extension != null ? [extension] : []);
       if (!checkTokenExpired()) {
-        await getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate, setLoading, setError);
+        await getRuntimeTemplate(currentRuntime.runtime_id, token, setFunctionTemplate,
+            updateLoadingState('getRuntimeTemplate', setLoading), setError);
       }
     }
   };
 
   const onRuntimeChange = (value) => {
     setSelectedRuntime(value);
+    setIsFile(true);
+    form.setFieldValue(['isFile'], true);
   };
+
+  if (isLoading['listRuntimes'] || isLoading['listFunctionTypes']) {
+    return (<LoadingSpinner isCard={false}/>);
+  }
 
   return (
     <>
@@ -78,7 +93,6 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
         name="newFunctionForm"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
       >
@@ -175,7 +189,7 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
             <Select className="w-40" onChange={onRuntimeChange}>
               {runtimes.map((runtime) => {
                 return (
-                  <Select.Option value={runtime.runtime_id} key={runtime.runtime_id} >
+                  <Select.Option value={runtime.runtime_id} key={runtime.runtime_id}>
                     {runtime.name}
                   </Select.Option>
                 );
@@ -257,13 +271,15 @@ const NewFunctionFrom = ({setNewFunction, setError}) => {
                 ]}
                 className="col-span-full"
               >
-                <CodeMirror height="500px" extensions={editorExtensions}/>
+                {isLoading['getRuntimeTemplate'] ?
+                  <LoadingSpinner isCard={false}/> :
+                  <CodeMirror height="500px" extensions={editorExtensions}/> }
               </Form.Item>
             }
           </>}
         </div>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isLoading['createFunction']}>
             Create
           </Button>
         </Form.Item>

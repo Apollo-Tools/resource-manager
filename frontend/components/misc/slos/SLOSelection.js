@@ -10,6 +10,8 @@ import {listResourceTypes} from '../../../lib/api/ResourceTypeService';
 import {listPlatforms} from '../../../lib/api/PlatformService';
 import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
 import {listEnvironments} from '../../../lib/api/EnvironmentService';
+import {updateLoadingState} from '../../../lib/misc/LoadingUtil';
+import LoadingSpinner from '../LoadingSpinner';
 
 
 const SLOSelection = ({onChange, setError}) => {
@@ -21,18 +23,26 @@ const SLOSelection = ({onChange, setError}) => {
   const [environments, setEnvironments] = useState([]);
   const [platforms, setPlatforms] = useState([]);
   const [sloId, setSloId] = useState(0);
-  const [isLoading, setLoading] = useState();
+  const [isLoading, setLoading] = useState(
+      {
+        'listMetrics': true,
+        'listRegions': true,
+        'listResourceTypes': true,
+        'listPlatforms': true,
+        'listResourceProviders': true,
+        'listEnvironments': true,
+      });
   const [metricsInitialised, setMetricsInitialised] = useState(false);
   const [slos, setSlos] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listMetrics(token, setMetrics, setLoading, setError);
-      void listRegions(token, setRegions, setLoading, setError);
-      void listResourceTypes(token, setResourceTypes, setLoading, setError);
-      void listPlatforms(token, setPlatforms, setLoading, setError);
-      void listResourceProviders(token, setProviders, setLoading, setError);
-      void listEnvironments(token, setEnvironments, setLoading, setError);
+      void listMetrics(token, setMetrics, updateLoadingState('listMetrics', setLoading), setError);
+      void listRegions(token, setRegions, updateLoadingState('listRegions', setLoading), setError);
+      void listResourceTypes(token, setResourceTypes, updateLoadingState('listResourceTypes', setLoading), setError);
+      void listPlatforms(token, setPlatforms, updateLoadingState('listPlatforms', setLoading), setError);
+      void listResourceProviders(token, setProviders, updateLoadingState('listResourceProviders', setLoading), setError);
+      void listEnvironments(token, setEnvironments, updateLoadingState('listEnvironments', setLoading), setError);
     }
   }, []);
 
@@ -148,6 +158,9 @@ const SLOSelection = ({onChange, setError}) => {
       sel1.name.localeCompare(sel2.name));
   };
 
+  if (Object.values(isLoading).some((a) => a)) {
+    return <LoadingSpinner isCard={false} />;
+  }
 
   return (<div>
     {slos.map((slo) => {

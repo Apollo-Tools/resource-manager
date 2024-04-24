@@ -29,10 +29,6 @@ const NewAccount = ({setError}) => {
     }
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
   const validateConfirmPassword = (_, value) => {
     const {password} = form.getFieldsValue();
     if (value && value !== password) {
@@ -49,7 +45,6 @@ const NewAccount = ({setError}) => {
       <Title level={3} className="text-center m-0">Create a new Account</Title>
       <Form
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         layout="vertical"
         form={form}
       >
@@ -108,7 +103,7 @@ const NewAccount = ({setError}) => {
               Cancel
             </Button>
           </Link>
-          <Button type="primary" htmlType="submit" className="float-right">
+          <Button type="primary" htmlType="submit" className="float-right" loading={isLoading}>
             Create
           </Button>
         </Form.Item>

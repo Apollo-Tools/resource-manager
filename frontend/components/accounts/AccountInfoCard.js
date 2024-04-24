@@ -10,8 +10,7 @@ import AddNamespaceForm from './AddNamespaceForm';
 import {getAccount, getMyAccount} from '../../lib/api/AccountService';
 import {listMyNamespaces, listNamespaces} from '../../lib/api/AccountNamespaceService';
 import PropTypes from 'prop-types';
-import TableSkeleton from '../misc/TableSkeleton';
-import ContentSkeleton from '../misc/ContentSkeleton';
+import ErrorCard from '../misc/ErrorCard';
 
 const AccountInfoCard = ({isAdmin, accountId, setError}) => {
   const {token, checkTokenExpired} = useAuth();
@@ -47,9 +46,18 @@ const AccountInfoCard = ({isAdmin, accountId, setError}) => {
   return (
     <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
       <Space className="col-span-6" direction="vertical" size="large">
-        <TextDataDisplay label="Username" value={account?.username} isLoading={isAccountLoading}/>
-        <TextDataDisplay label="Role" value={account?.role.role} isLoading={isAccountLoading}/>
-        <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={account?.created_at} />} isLoading={isAccountLoading} />
+        {isAccountLoading || account ?
+          <>
+            <TextDataDisplay label="Username" value={account?.username} isLoading={isAccountLoading}/>
+            <TextDataDisplay label="Role" value={account?.role.role} isLoading={isAccountLoading}/>
+            <TextDataDisplay
+              label="Created at"
+              value={account && <DateFormatter dateTimestamp={account?.created_at} />}
+              isLoading={isAccountLoading}
+            />
+          </> :
+          <ErrorCard isCard={false} />
+        }
       </Space>
       <div className="col-span-6">
         <DataDisplay label={'Reset Password'}>
@@ -62,7 +70,7 @@ const AccountInfoCard = ({isAdmin, accountId, setError}) => {
           <NamespaceTable
             namespaces={accountNamespaces}
             setFinished={setFinished}
-            accountId={account?.account_id}
+            accountId={account?.account_id ?? -1}
             hasActions={isAdmin}
             setError={setError}
             isLoading={isNamespacesLoading}
@@ -73,7 +81,7 @@ const AccountInfoCard = ({isAdmin, accountId, setError}) => {
       <div className="col-span-full" >
         {accountNamespaces &&
           <AddNamespaceForm
-            accountId={account?.account_id}
+            accountId={account?.account_id ?? -1}
             existingNamespaces={accountNamespaces}
             setFinished={setFinished}
             setError={setError}

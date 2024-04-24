@@ -30,9 +30,6 @@ const NewEnsembleForm = ({setNewEnsemble, setError}) => {
           setError);
     }
   };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
 
   const onClickFindResourcesBySLOs = () => {
     const slos = form.getFieldValue('slos');
@@ -58,7 +55,6 @@ const NewEnsembleForm = ({setNewEnsemble, setError}) => {
         name="newFunctionForm"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
       >
@@ -126,7 +122,7 @@ const NewEnsembleForm = ({setNewEnsemble, setError}) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isLoading}>
             Create
           </Button>
         </Form.Item>

@@ -26,9 +26,10 @@ const VPCCard = ({setError}) => {
   }, [vpcs]);
 
   useEffect(() => {
-    if (!checkTokenExpired()) {
+    if (!checkTokenExpired() && isFinished) {
       void listVPCs(token, setVPCs, setLoading, setError);
     }
+    setFinished(false);
   }, [isFinished]);
 
   const onClickDelete = (id) => {
@@ -44,9 +45,9 @@ const VPCCard = ({setError}) => {
 
   return <>
     <Typography.Title level={2}>Virtual Private Clouds</Typography.Title>
-    <NewVPCForm excludeRegions={excludeRegions} setFinished={setFinished} setError={setError}/>
+    <NewVPCForm excludeRegions={excludeRegions} setFinished={setFinished} setError={setError} isLoading={isLoading}/>
     <Divider />
-    <VPCTable vpcs={vpcs} hasActions={true} onDelete={onClickDelete} />
+    <VPCTable vpcs={vpcs} hasActions={true} onDelete={onClickDelete} isLoading={isLoading}/>
   </>;
 };
 

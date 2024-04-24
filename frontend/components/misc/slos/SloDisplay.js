@@ -8,6 +8,8 @@ import {listResourceProviders} from '../../../lib/api/ResourceProviderService';
 import {listPlatforms} from '../../../lib/api/PlatformService';
 import {listEnvironments} from '../../../lib/api/EnvironmentService';
 import BoolValueDisplay from '../BoolValueDisplay';
+import {updateLoadingState} from '../../../lib/misc/LoadingUtil';
+import ContentSkeleton from '../ContentSkeleton';
 
 
 const SloDisplay = ({slos, setError}) => {
@@ -17,25 +19,32 @@ const SloDisplay = ({slos, setError}) => {
   const [resourceTypes, setResourceTypes] = useState([]);
   const [environments, setEnvironments] = useState([]);
   const [platforms, setPlatforms] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(
+      {
+        'listRegions': false,
+        'listResourceTypes': false,
+        'listPlatforms': false,
+        'listResourceProviders': false,
+        'listEnvironments': false,
+      });
 
   useEffect(() => {
     if (slos && !checkTokenExpired()) {
       const sloNames = new Set(slos.map((slo) => slo.name));
       if (sloNames.has('region')) {
-        void listRegions(token, setRegions, setLoading, setError);
+        void listRegions(token, setRegions, updateLoadingState('listRegions', setLoading), setError);
       }
       if (sloNames.has('resource_type')) {
-        void listResourceTypes(token, setResourceTypes, setLoading, setError);
+        void listResourceTypes(token, setResourceTypes, updateLoadingState('listResourceTypes', setLoading), setError);
       }
       if (sloNames.has('platform')) {
-        void listPlatforms(token, setPlatforms, setLoading, setError);
+        void listPlatforms(token, setPlatforms, updateLoadingState('listPlatforms', setLoading), setError);
       }
       if (sloNames.has('resource_provider')) {
-        void listResourceProviders(token, setProviders, setLoading, setError);
+        void listResourceProviders(token, setProviders, updateLoadingState('listResourceProviders', setLoading), setError);
       }
       if (sloNames.has('environment')) {
-        void listEnvironments(token, setEnvironments, setLoading, setError);
+        void listEnvironments(token, setEnvironments, updateLoadingState('listEnvironments', setLoading), setError);
       }
     }
   }, [slos]);
@@ -60,8 +69,15 @@ const SloDisplay = ({slos, setError}) => {
     }
   };
 
+  const checkIsLoading = () => Object.values(isLoading).some((a) => a);
+
   return <>
     {slos.map((slo, idx) => {
+      if (checkIsLoading()) {
+        return (
+          <ContentSkeleton key={idx} titleProps={false} paragraphProps={{rows: 1}}/>
+        );
+      }
       return (
         <div key={idx}>
           <div className="grid grid-cols-12 gap-4">

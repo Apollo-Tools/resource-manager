@@ -99,10 +99,10 @@ const Sidebar = ({children}) => {
         <div className="w-full text-white text-lg text-start">{siteTitle}</div>
       </Header>
       {authenticated ?
-        <Layout className="site-layout ml-[200px] mt-9">
+        <Layout className="site-layout ml-[200px] mt-16">
           {content}
         </Layout> :
-        <Layout className="site-layout mt-9">
+        <Layout className="site-layout mt-16">
           {content}
         </Layout>
       }

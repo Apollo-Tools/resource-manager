@@ -16,9 +16,9 @@ const {Column} = Table;
 const {confirm} = Modal;
 
 const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allFunctions = false,
-  setError}) => {
+  isLoading = false, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState(false);
+  const [isInsideLoading, setInsideLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [functions, setFunctions] = useState([]);
   const [selectedResources, setSelectedResources] = useState(new Map());
@@ -26,16 +26,18 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (allFunctions) {
-        void listAllFunctions(token, setFunctions, setLoading, setError);
+        void listAllFunctions(token, setFunctions, setInsideLoading, setError);
       } else {
-        void listMyFunctions(token, setFunctions, setLoading, setError);
+        void listMyFunctions(token, setFunctions, setInsideLoading, setError);
       }
       setSelectedResources(value);
     }
   }, [allFunctions]);
 
   useEffect(() => {
-    onChange?.(selectedResources);
+    if (selectedResources != null) {
+      onChange?.(selectedResources);
+    }
   }, [selectedResources]);
 
   const onClickDelete = (id) => {
@@ -112,7 +114,7 @@ const FunctionTable = ({value = {}, onChange, hideDelete, isExpandable, resource
       rowKey={(record) => record.function_id}
       expandable={isExpandable ? expandedRowRender : null}
       size="small"
-      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
+      locale={{emptyText: isLoading || isInsideLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="function_id" key="id"
         sorter={(a, b) => a.function_id - b.function_id}
@@ -189,6 +191,7 @@ FunctionTable.propTypes = {
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
   allFunctions: PropTypes.bool,
+  isLoading: PropTypes.bool,
   setError: PropTypes.func.isRequired,
 };
 

@@ -7,37 +7,42 @@ import ProviderIcon from '../misc/ProviderIcon';
 import {listPlatforms, listRegionsByPlatform} from '../../lib/api/PlatformService';
 import {nameRegexValidationRule, nameValidationRule} from '../../lib/api/FormValidationRules';
 import TooltipIcon from '../misc/TooltipIcon';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 
 
 const NewResourceForm = ({setNewResource, setError}) => {
   const [form] = Form.useForm();
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState();
+  const [isLoading, setLoading] = useState(
+      {
+        listPlatforms: true,
+        createResource: false,
+        listRegions: false,
+      });
   const [platforms, setPlatforms] = useState([]);
   const [regions, setRegions] = useState([]);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      listPlatforms(token, setPlatforms, setLoading, setError)
-          .then(() => setPlatforms((prevTypes) =>
-            prevTypes.sort((a, b) => a.platform.localeCompare(b.platform)),
-          ));
+      void listPlatforms(token, setPlatforms, updateLoadingState('listPlatforms', setLoading), setError);
     }
   }, []);
+
+  useEffect(() => {
+    setPlatforms((prevTypes) =>
+      prevTypes.sort((a, b) => a.platform.localeCompare(b.platform)));
+  }, [platforms]);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createResource(values.name, values.platform, values.region, values.isLockable, token, setNewResource,
-          setLoading, setError);
+          updateLoadingState('createResource', setLoading), setError);
     }
-  };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
   };
 
   const onChangePlatform = async (platformId) => {
     if (!checkTokenExpired()) {
-      await listRegionsByPlatform(platformId, token, setRegions, setLoading, setError);
+      await listRegionsByPlatform(platformId, token, setRegions, updateLoadingState('listRegions', setLoading), setError);
     }
     form.resetFields(['region']);
   };
@@ -48,7 +53,6 @@ const NewResourceForm = ({setNewResource, setError}) => {
         form={form}
         name="basic"
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
         className="grid lg:grid-cols-12 grid-cols-6 gap-4"
@@ -84,7 +88,7 @@ const NewResourceForm = ({setNewResource, setError}) => {
           ]}
           className="col-span-6"
         >
-          <Select className="w-40" onChange={onChangePlatform}>
+          <Select className="w-40" onChange={onChangePlatform} loading={isLoading['listPlatforms']}>
             {platforms.map((platform) => {
               return (
                 <Select.Option value={platform.platform_id} key={platform.platform_id}>
@@ -106,7 +110,7 @@ const NewResourceForm = ({setNewResource, setError}) => {
           ]}
           className="col-span-6"
         >
-          <Select className="w-40" disabled={regions.length === 0}>
+          <Select className="w-40" disabled={regions.length === 0} loading={isLoading['listRegions']}>
             {regions.map((region) => {
               return (
                 <Select.Option value={region.region_id} key={region.region_id}>
@@ -117,8 +121,8 @@ const NewResourceForm = ({setNewResource, setError}) => {
           </Select>
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
-                        Create
+          <Button type="primary" htmlType="submit" loading={isLoading['createResource']}>
+              Create
           </Button>
         </Form.Item>
       </Form>

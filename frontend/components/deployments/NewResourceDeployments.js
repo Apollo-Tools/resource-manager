@@ -11,7 +11,7 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
   setServiceResources, next, prev, setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [ensemble, setEnsemble] = useState();
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(true);
   const [selected, setSelected] = useState(false);
   const [functionResourceChoice, setfunctionResourceChoice] = useState([]);
   const [serviceResourceChoice, setServiceResourceChoice] = useState([]);
@@ -50,29 +50,31 @@ const NewResourceDeployments = ({ensembleId, functionResources, setFunctionResou
   return (
     <>
       <Typography.Title level={2}>Functions</Typography.Title>
-      {functionResourceChoice.length > 0 ? <FunctionTable
+      {functionResourceChoice.length > 0 || isLoading ? <FunctionTable
         value={functionResources}
         hideDelete
         isExpandable
         resources={functionResourceChoice}
         onChange={setFunctionResources}
         allFunctions
+        isLoading={isLoading}
         setError={setError} /> :
         <Typography.Text>
-          No suitable resources for function deployment available...
+          No suitable resources for function deployments available...
         </Typography.Text>
       }
       <Typography.Title level={2}>Services</Typography.Title>
-      {serviceResourceChoice.length > 0 ? <ServiceTable
+      {serviceResourceChoice.length > 0 || isLoading ? <ServiceTable
         value={serviceResources}
         hideDelete
         isExpandable
         resources={serviceResourceChoice}
         onChange={setServiceResources}
         allServices
+        isLoading={isLoading}
         setError={setError}/> :
         <Typography.Text className="block mb-10">
-          No suitable resources for service deployment available...
+          No suitable resources for service deployments available...
         </Typography.Text>
       }
       <Button type="primary" onClick={next} disabled={!selected} className="float-right">Next</Button>

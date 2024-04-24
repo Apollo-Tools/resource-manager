@@ -10,10 +10,10 @@ import TextDataDisplay from '../misc/TextDataDisplay';
 import DateFormatter from '../misc/DateFormatter';
 
 
-const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
+const UpdateFunctionSettingsForm = ({func, reloadFunction, setError, isLoading}) => {
   const [form] = Form.useForm();
   const {payload, token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState();
+  const [isInsideLoading, setInsideLoading] = useState();
   const [canEdit, setCanEdit] = useState(false);
   const [isModified, setModified] = useState(false);
 
@@ -37,12 +37,9 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await updateFunctionSettings(func.function_id, values.code, values.timeout, values.memorySize, values.isPublic,
-          token, setLoading, setError)
+          token, setInsideLoading, setError)
           .then(() => reloadFunction().then(() => setModified(false)));
     }
-  };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
   };
 
   const checkCodeIsModified = () => {
@@ -59,21 +56,22 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
         name="updateFunctionSettingsForm"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
         onChange={() => setModified(true)}
         disabled={!canEdit}
       >
         <div className="grid lg:grid-cols-12 grid-cols-6 gap-4">
-          <TextDataDisplay label="Function Type" value={func.function_type.name} className="col-span-6"/>
-          <TextDataDisplay label="Name" value={func.name} className="col-span-6"/>
-          <TextDataDisplay label="Runtime" value={func.runtime.name} className="col-span-6"/>
-          <TextDataDisplay label="Created by" value={func.created_by.username} className="col-span-6" />
-          <TextDataDisplay label="Created at" value={<DateFormatter dateTimestamp={func.created_at} includeTime/>}
-            className="col-span-6"/>
-          <TextDataDisplay label="Updated at" value={<DateFormatter dateTimestamp={func.updated_at} includeTime/>}
-            className="col-span-6"/>
+          <TextDataDisplay label="Function Type" value={func?.function_type?.name} className="col-span-6"
+            isLoading={isLoading}/>
+          <TextDataDisplay label="Name" value={func?.name} className="col-span-6" isLoading={isLoading}/>
+          <TextDataDisplay label="Runtime" value={func?.runtime?.name} className="col-span-6" isLoading={isLoading}/>
+          <TextDataDisplay label="Created by" value={func?.created_by?.username} className="col-span-6"
+            isLoading={isLoading}/>
+          <TextDataDisplay label="Created at" value={func && <DateFormatter dateTimestamp={func.created_at} includeTime/>}
+            className="col-span-6" isLoading={isLoading}/>
+          <TextDataDisplay label="Updated at" value={func && <DateFormatter dateTimestamp={func.updated_at} includeTime/>}
+            className="col-span-6" isLoading={isLoading}/>
           <Divider className="col-span-full"/>
           <Form.Item
             label={<>
@@ -122,7 +120,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
             }}/>
           </Form.Item>
 
-          {!func.is_file && (
+          {func && !func.is_file && (
             <Form.Item
               label={<Typography.Title level={5} className="mt-3">Code</Typography.Title>}
               name="code"
@@ -136,7 +134,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
             >
               <CodeMirror
                 height="500px"
-                extensions={getEditorExtension(func.runtime.name)}
+                extensions={func ? getEditorExtension(func.runtime.name) : null}
                 onChange={() => setModified(checkCodeIsModified())}
                 editable={canEdit}
               />
@@ -145,7 +143,7 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
         </div>
         {canEdit && <Form.Item className="col-span-full">
           <Space>
-            <Button type="primary" htmlType="submit" disabled={!isModified}>
+            <Button type="primary" htmlType="submit" disabled={!isModified} loading={isInsideLoading}>
                       Update
             </Button>
             <Button type="default" onClick={() => resetFields()} disabled={!isModified}>
@@ -159,8 +157,9 @@ const UpdateFunctionSettingsForm = ({func, reloadFunction, setError}) => {
 };
 
 UpdateFunctionSettingsForm.propTypes = {
-  func: PropTypes.object.isRequired,
+  func: PropTypes.object,
   reloadFunction: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
   setError: PropTypes.func.isRequired,
 };
 

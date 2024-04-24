@@ -14,7 +14,7 @@ const K8sResourceDashboard = ({resourceIds, isActive = true}) => {
       });
       const firstMainResource = resourceIds.values().next().value;
       if (firstMainResource !== 'All') {
-        newParameters.push({'key': 'var-mainResourceId', 'value': resourceIds.values().next().value});
+        newParameters.push({'key': 'var-mainResourceId', 'value': resourceIds.values().next().value.toString()});
       } else {
         newParameters.push({'key': 'var-mainResourceId', 'value': 'None'});
       }

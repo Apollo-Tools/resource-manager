@@ -14,6 +14,7 @@ import {listPlatformMetrics} from '../../lib/api/PlatformMetricService';
 import {LockTwoTone, UnlockTwoTone} from '@ant-design/icons';
 import {ICON_GREEN, ICON_RED} from '../../components/misc/Constants';
 import PropTypes from 'prop-types';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 
 // TODO: add way to update values
 const ResourceDetails = ({setError}) => {
@@ -25,22 +26,32 @@ const ResourceDetails = ({setError}) => {
   const [subresources, setSubresources] = useState([]);
   const [platformMetrics, setPlatformMetrics] = useState([]);
   const [isFinished, setFinished] = useState(false);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(
+      {
+        getResource: true,
+        listSubresources: true,
+        listResourceMetrics: true,
+        listPlatformMetrics: true,
+      },
+  );
   const [segments, setSegments] = useState([]);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      void getResource(id, token, setResource, setLoading, setError);
-      void listSubresources(id, token, setSubresources, setLoading, setError);
-      void listResourceMetrics(id, token, setMetricValues, setLoading, setError);
+      void getResource(Number(id), token, setResource, updateLoadingState('getResource', setLoading), setError);
+      void listSubresources(Number(id), token, setSubresources, updateLoadingState('listSubresources', setLoading),
+          setError);
+      void listResourceMetrics(Number(id), token, setMetricValues, updateLoadingState('listResourceMetrics', setLoading),
+          setError);
     }
   }, [id]);
 
   useEffect(() => {
     if (!checkTokenExpired() && resource != null) {
-      void listPlatformMetrics(resource.platform.platform_id, token, setPlatformMetrics, setLoading, setError);
+      void listPlatformMetrics(resource.platform.platform_id, token, setPlatformMetrics,
+          updateLoadingState('listPlatformMetrics', setLoading), setError);
     }
   }, [resource]);
 
@@ -76,7 +87,8 @@ const ResourceDetails = ({setError}) => {
 
   useEffect(() => {
     if (isFinished) {
-      void listResourceMetrics(id, token, setMetricValues, setLoading, setError);
+      void listResourceMetrics(Number(id), token, setMetricValues,
+          updateLoadingState('listResourceMetrics', setLoading), setError);
       setFinished(false);
     }
   }, [isFinished]);
@@ -107,7 +119,7 @@ const ResourceDetails = ({setError}) => {
       </Head>
       <div className="default-card">
         <Typography.Title level={2}>
-          {resource?.name} ({resource?.resource_id})
+          {resource?.name} ({id})
           <Tooltip
             placement="top"
             title={`resource is ${resource?.is_locked ? 'locked' : 'not locked'}`}
@@ -128,8 +140,13 @@ const ResourceDetails = ({setError}) => {
           onChange={(e) => setSelectedSegment(e)} size="large" block/>
         <Divider />
         {
-          selectedSegment === 'Details' && resource != null &&
-          <ResourceDetailsCard resource={resource} setResource={setResource} setError={setError}/>
+          selectedSegment === 'Details' &&
+          <ResourceDetailsCard
+            resource={resource}
+            setResource={setResource}
+            setError={setError}
+            isLoading={isLoading['getResource']}
+          />
         }
         {selectedSegment === 'Metric Values' && resource != null && (
           <>

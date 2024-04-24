@@ -6,25 +6,30 @@ import {LockOutlined} from '@ant-design/icons';
 import {createCredentials} from '../../lib/api/CredentialsService';
 import PropTypes from 'prop-types';
 import {successNotification} from '../../lib/misc/NotificationProvider';
+import LoadingSpinner from '../misc/LoadingSpinner';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 
 
-const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
+const NewCredentialsForm = ({excludeProviders, setFinished, isLoading, setError}) => {
   const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [resourceProviders, setResourceProviders] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isInsideLoading, setInsideLoading] = useState(
+      {listProviders: false, createCredentials: false},
+  );
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listResourceProviders(token, setResourceProviders, setLoading, setError);
+      void listResourceProviders(token, setResourceProviders,
+          updateLoadingState('listProviders', setInsideLoading), setError);
     }
   }, []);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
       await createCredentials(values.resourceProvider, values.accessKey, values.secretAccessKey, values.sessionToken,
-          token, setLoading, setError)
+          token, updateLoadingState('createCredentials', setInsideLoading), setError)
           .then((result) => {
             if (result) {
               successNotification(notification, 'Credentials were created successfully!');
@@ -34,6 +39,10 @@ const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
           });
     }
   };
+
+  if (isLoading || isInsideLoading['listProviders']) {
+    return (<LoadingSpinner isCard={false}/>);
+  }
 
   return (
     <>
@@ -96,7 +105,7 @@ const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isInsideLoading['createCredentials']}>
             Create
           </Button>
         </Form.Item>
@@ -108,6 +117,7 @@ const NewCredentialsForm = ({excludeProviders, setFinished, setError}) => {
 NewCredentialsForm.propTypes = {
   excludeProviders: PropTypes.arrayOf(PropTypes.number),
   setFinished: PropTypes.func,
+  isLoading: PropTypes.bool.isRequired,
   setError: PropTypes.func.isRequired,
 };
 

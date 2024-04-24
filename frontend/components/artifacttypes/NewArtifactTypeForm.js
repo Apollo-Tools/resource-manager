@@ -20,9 +20,6 @@ const NewArtifactTypeForm = ({setNewArtifactType, artifact, setError}) => {
       }
     }
   };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
 
   return (
     <>
@@ -30,7 +27,6 @@ const NewArtifactTypeForm = ({setNewArtifactType, artifact, setError}) => {
         name="newArtifactTypeForm"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
       >
@@ -45,7 +41,7 @@ const NewArtifactTypeForm = ({setNewArtifactType, artifact, setError}) => {
           </Form.Item>
         </div>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isLoading}>
             Create
           </Button>
         </Form.Item>

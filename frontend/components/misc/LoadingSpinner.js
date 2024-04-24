@@ -16,7 +16,7 @@ const LoadingSpinner = ({isCard= true}) => {
 
   if (isCard) {
     return (
-      <Card className="flex justify-center content-center w-96 h-36">
+      <Card className="flex justify-center content-center w-96 h-32">
         {loadingElement}
       </Card>
     );

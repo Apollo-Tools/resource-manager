@@ -6,6 +6,8 @@ import {listPlatformMetrics} from '../../lib/api/PlatformMetricService';
 import {addResourceMetrics} from '../../lib/api/ResourceService';
 import PropTypes from 'prop-types';
 import TooltipIcon from '../misc/TooltipIcon';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
+import LoadingSpinner from '../misc/LoadingSpinner';
 
 const getMetricById = (metrics, metricId) => {
   return metrics
@@ -35,13 +37,15 @@ const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewReso
   const {token, checkTokenExpired} = useAuth();
   const [metrics, setMetrics] = useState([]);
   const [filteredMetrics, setFilteredMetrics] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(
+      {listPlatformMetrics: true, addResourceMetrics: false});
   const [requiredSelected, setRequiredSelected] = useState(false);
   Form.useWatch('basic', form);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listPlatformMetrics(resource.platform.platform_id, token, setMetrics, setLoading, setError);
+      void listPlatformMetrics(resource.platform.platform_id, token, setMetrics,
+          updateLoadingState('listPlatformMetrics', setLoading), setError);
     }
   }, [excludeMetricIds]);
 
@@ -88,17 +92,14 @@ const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewReso
                         metricValue.value};
       }
     });
-    await addResourceMetrics(resource.resource_id, requestBody, token, setLoading, setError)
+    await addResourceMetrics(resource.resource_id, requestBody, token,
+        updateLoadingState('addResourceMetrics', setLoading), setError)
         .then((result) => {
           if (result) {
             setFinished(true);
             form.resetFields();
           }
         });
-  };
-
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
   };
 
   const onChangeMetric = () => {
@@ -122,8 +123,8 @@ const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewReso
     onChangeMetric();
   };
 
-  if (metrics.length === 0) {
-    return (<></>);
+  if (isLoading['listPlatformMetrics']) {
+    return (<LoadingSpinner isCard={false}/>);
   }
 
   return (
@@ -132,7 +133,6 @@ const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewReso
       <Form form={form}
         name="metricValueForm"
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
       >
         <Form.List name="metricValues">
@@ -211,10 +211,14 @@ const AddMetricValuesForm = ({resource, excludeMetricIds, setFinished, isNewReso
 
         <div className="flex">
           <Form.Item>
-            <Button type="primary" htmlType="submit"
+            <Button
+              type="primary"
+              htmlType="submit"
               disabled={form.getFieldValue('metricValues') == null ||
                         form.getFieldValue('metricValues')?.length <= 0 ||
-                        !requiredSelected}>
+                        !requiredSelected}
+              loading={isLoading['addResourceMetrics']}
+            >
               Create
             </Button>
           </Form.Item>

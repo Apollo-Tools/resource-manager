@@ -43,9 +43,6 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished, setError}
           .then(() => form.resetFields());
     }
   };
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
 
   if (!filteredNamespaces || filteredNamespaces.size === 0) {
     return;
@@ -55,7 +52,6 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished, setError}
     form={form}
     name="addNamespaceForm"
     onFinish={onFinish}
-    onFinishFailed={onFinishFailed}
     autoComplete="off"
     layout="vertical"
   >
@@ -75,7 +71,7 @@ const AddNamespaceForm = ({accountId, existingNamespaces, setFinished, setError}
       </Form.Item>
     </div>
     <Form.Item>
-      <Button type="primary" htmlType="submit">
+      <Button type="primary" htmlType="submit" loading={isLoading}>
         Add
       </Button>
     </Form.Item>

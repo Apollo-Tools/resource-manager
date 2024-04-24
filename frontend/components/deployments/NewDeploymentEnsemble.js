@@ -37,10 +37,6 @@ const NewDeploymentEnsemble = (
     next();
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
   const isURL = (rule, value) => {
     if (!value) {
       return Promise.resolve();
@@ -57,7 +53,6 @@ const NewDeploymentEnsemble = (
     <Form
       name="newDeploymentEnsembleForm"
       onFinish={onFinish}
-      onFinishFailed={onFinishFailed}
       autoComplete="off"
       layout="vertical"
     >

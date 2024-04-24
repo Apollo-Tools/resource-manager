@@ -20,10 +20,6 @@ const UpdateFunctionFileForm = ({func, reloadFunction, setError}) => {
     }
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
   const checkFileIsModified = (file, fileList) => {
     setFileList(fileList);
     return file.status === 'done';
@@ -35,12 +31,11 @@ const UpdateFunctionFileForm = ({func, reloadFunction, setError}) => {
         name="func-details"
         form={form}
         onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
         autoComplete="off"
         layout="vertical"
       >
         {
-          func.is_file &&
+          func?.is_file &&
             <>
               <Form.Item
                 label="Update code (.zip)"
@@ -88,7 +83,7 @@ const UpdateFunctionFileForm = ({func, reloadFunction, setError}) => {
                 </Upload>
               </Form.Item>
               <Form.Item>
-                <Button type="primary" htmlType="submit" disabled={!isModified}>
+                <Button type="primary" htmlType="submit" disabled={!isModified} loading={isLoading}>
                   Update
                 </Button>
               </Form.Item>

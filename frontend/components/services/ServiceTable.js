@@ -1,4 +1,4 @@
-import {Button, Modal, Space, Table, Tooltip} from 'antd';
+import {Button, Empty, Modal, Space, Table, Tooltip} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled, InfoCircleOutlined, UserOutlined} from '@ant-design/icons';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import {useEffect, useState} from 'react';
@@ -9,13 +9,15 @@ import ColumnFilterDropdown from '../misc/ColumnFilterDropdown';
 import Link from 'next/link';
 import DateColumnRender from '../misc/DateColumnRender';
 import BoolValueDisplay from '../misc/BoolValueDisplay';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false, setError}) => {
+const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources, allServices = false,
+  isLoading = false, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState(false);
+  const [isInsideLoading, setInsideLoading] = useState(false);
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [services, setServices] = useState([]);
   const [selectedResources, setSelectedResources] = useState();
@@ -23,21 +25,23 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
   useEffect(() => {
     if (!checkTokenExpired()) {
       if (allServices) {
-        void listAllServices(token, setServices, setLoading, setError);
+        void listAllServices(token, setServices, setInsideLoading, setError);
       } else {
-        void listMyServices(token, setServices, setLoading, setError);
+        void listMyServices(token, setServices, setInsideLoading, setError);
       }
       setSelectedResources(value);
     }
   }, [allServices]);
 
   useEffect(() => {
-    onChange?.(selectedResources);
+    if (selectedResources != null) {
+      onChange?.(selectedResources);
+    }
   }, [selectedResources]);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
-      deleteService(id, token, setLoading, setError)
+      deleteService(id, token, setInsideLoading, setError)
           .then((result) => {
             if (result) {
               setServices(services.filter((service) => service.service_id !== id));
@@ -111,6 +115,7 @@ const ServiceTable = ({value = {}, onChange, hideDelete, isExpandable, resources
       rowKey={(record) => record.service_id}
       expandable={isExpandable ? expandedRowRender : null}
       size="small"
+      locale={{emptyText: isLoading || isInsideLoading ? <TableSkeleton /> : <Empty />}}
     >
       <Column title="Id" dataIndex="service_id" key="id"
         sorter={(a, b) => a.service_id - b.service_id}
@@ -186,6 +191,7 @@ ServiceTable.propTypes = {
   isExpandable: PropTypes.bool,
   resources: PropTypes.arrayOf(PropTypes.object),
   allServices: PropTypes.bool,
+  isLoading: PropTypes.bool,
   setError: PropTypes.func.isRequired,
 };
 

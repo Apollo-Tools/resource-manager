@@ -8,23 +8,24 @@ import UpdateFunctionSettingsForm from '../../components/functions/UpdateFunctio
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import PropTypes from 'prop-types';
+import LoadingSpinner from '../../components/misc/LoadingSpinner';
 
 const FunctionDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [func, setFunction] = useState('');
-  const [isLoading, setLoading] = useState(false);
+  const [func, setFunction] = useState();
+  const [isLoading, setLoading] = useState(true);
   const router = useRouter();
   const {id} = router.query;
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      void getFunction(id, token, setFunction, setLoading, setError);
+      void getFunction(Number(id), token, setFunction, setLoading, setError);
     }
   }, [id]);
 
   const reloadFunction = async () => {
     if (!checkTokenExpired()) {
-      await getFunction(id, token, setFunction, setLoading, setError);
+      await getFunction(Number(id), token, setFunction, setLoading, setError);
     }
   };
 
@@ -34,13 +35,17 @@ const FunctionDetails = ({setError}) => {
         <title>{`${siteTitle}: Function Details`}</title>
       </Head>
       <div className="default-card">
-        <Typography.Title level={2}>Function Details ({func.function_id})</Typography.Title>
+        <Typography.Title level={2}>Function Details ({id})</Typography.Title>
         <Divider />
         {
-          func && <>
-            <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction} setError={setError}/>
+          <>
+            <UpdateFunctionSettingsForm func={func} reloadFunction={reloadFunction} setError={setError}
+              isLoading={isLoading}/>
             <Divider/>
-            <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction} setError={setError}/>
+            {isLoading ?
+              <LoadingSpinner isCard={false}/> :
+              <UpdateFunctionFileForm func={func} reloadFunction={reloadFunction} setError={setError}/>
+            }
           </>
         }
       </div>
