@@ -7,24 +7,36 @@ import {listRegions} from '../../lib/api/RegionService';
 import {createVPC} from '../../lib/api/VPCService';
 import ProviderIcon from '../misc/ProviderIcon';
 import {successNotification} from '../../lib/misc/NotificationProvider';
+import LoadingSpinner from '../misc/LoadingSpinner';
 
 
-const NewVPCForm = ({excludeRegions, setFinished, setError}) => {
+const NewVPCForm = ({excludeRegions, setFinished, isLoading, setError}) => {
   const {notification} = App.useApp();
   const {token, checkTokenExpired} = useAuth();
   const [regions, setRegions] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+  const [isInsideLoading, setInsideLoading] = useState({listRegions: false, createVPC: false});
   const [form] = Form.useForm();
+
+  const updateLoading = (type, newState) => {
+    setInsideLoading((prevState) => {
+      const newLoadings = {...prevState};
+      newLoadings[type] = newState;
+      return newLoadings;
+    });
+  };
+
+  const setListRegionsLoading = (newState) => updateLoading('listRegions', newState);
+  const setCreateVPCLoading = (newState) => updateLoading('createVPC', newState);
 
   useEffect(() => {
     if (!checkTokenExpired()) {
-      void listRegions(token, setRegions, setLoading, setError);
+      void listRegions(token, setRegions, setListRegionsLoading, setError);
     }
   }, []);
 
   const onFinish = async (values) => {
     if (!checkTokenExpired()) {
-      await createVPC(values.vpcIdValue, values.subnetIdValue, values.region, token, setLoading, setError)
+      await createVPC(values.vpcIdValue, values.subnetIdValue, values.region, token, setCreateVPCLoading, setError)
           .then((result) => {
             if (result) {
               successNotification(notification, 'VPC has been created successfully!');
@@ -34,6 +46,10 @@ const NewVPCForm = ({excludeRegions, setFinished, setError}) => {
           });
     }
   };
+
+  if (isLoading || isInsideLoading['listRegions']) {
+    return (<div className="h-64"><LoadingSpinner isCard={false}/></div>);
+  }
 
   return (
     <>
@@ -96,7 +112,7 @@ const NewVPCForm = ({excludeRegions, setFinished, setError}) => {
         </Form.Item>
 
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" loading={isInsideLoading['createVPC']}>
             Create
           </Button>
         </Form.Item>
@@ -108,6 +124,7 @@ const NewVPCForm = ({excludeRegions, setFinished, setError}) => {
 NewVPCForm.propTypes = {
   excludeRegions: PropTypes.arrayOf(PropTypes.number),
   setFinished: PropTypes.func,
+  isLoading: PropTypes.bool.isRequired,
   setError: PropTypes.func.isRequired,
 };
 

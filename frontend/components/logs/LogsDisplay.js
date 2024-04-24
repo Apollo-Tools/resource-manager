@@ -1,7 +1,6 @@
 import {Collapse} from 'antd';
 import DateFormatter from '../misc/DateFormatter';
 import PropTypes from 'prop-types';
-const {Panel} = Collapse;
 
 
 const LogsDisplay = ({logs}) => {
@@ -9,15 +8,15 @@ const LogsDisplay = ({logs}) => {
     return <>Currently there are no logs...</>;
   }
 
-  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small" bordered={false}>
-    {logs.map((log) =>
-      (<Panel header={<DateFormatter dateTimestamp={log.created_at} includeTime/>} key={log.log_id}>
-        <div className="max-h-56 overflow-auto m-[-12px] px-2">
-          {log.log_value}
-        </div>
-      </Panel>))
-    }
-  </Collapse>;
+  const collapseItems = logs.map((log) => {
+    return {
+      key: log.log_id,
+      label: <DateFormatter dateTimestamp={log.created_at} includeTime/>,
+      children: <div className="max-h-56 overflow-auto m-[-12px] px-2">{log.log_value}</div>,
+    };
+  });
+
+  return <Collapse accordion style={{whiteSpace: 'pre-wrap'}} size="small" bordered={false} items={collapseItems} />;
 };
 
 LogsDisplay.propTypes = {

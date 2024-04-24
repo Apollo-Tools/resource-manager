@@ -9,7 +9,7 @@ const K8sPodDashboard = ({deploymentId, isActive = true}) => {
   useEffect(() => {
     const newParameters = [];
     if (deploymentId != null) {
-      newParameters.push({'key': 'var-deploymentId', 'value': deploymentId});
+      newParameters.push({'key': 'var-deploymentId', 'value': deploymentId.toString()});
       newParameters.push({'key': 'refresh', 'value': '5s'});
       setParameters(() => newParameters);
       setParamsInitialized(true);

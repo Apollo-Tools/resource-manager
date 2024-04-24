@@ -1,17 +1,16 @@
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Empty, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
-import {useState} from 'react';
 import {deleteCredentials} from '../../lib/api/CredentialsService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
 
-const CredentialsList = ({credentials, setCredentials, setError}) => {
+const CredentialsTable = ({credentials, setCredentials, isLoading, setLoading, setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState(false);
 
   const onClickDelete = (id) => {
     if (!checkTokenExpired()) {
@@ -40,7 +39,12 @@ const CredentialsList = ({credentials, setCredentials, setError}) => {
 
   return (
     <>
-      <Table dataSource={credentials} rowKey={(record) => record.credentials_id} size="small">
+      <Table
+        dataSource={credentials}
+        rowKey={(record) => record.credentials_id}
+        size="small"
+        locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
+      >
         <Column title="Provider" dataIndex="resource_provider" key="resource_provider"
           render={(provider) => provider.provider}
           sorter={(a, b) => a.provider - b.provider}
@@ -62,10 +66,12 @@ const CredentialsList = ({credentials, setCredentials, setError}) => {
   );
 };
 
-CredentialsList.propTypes = {
+CredentialsTable.propTypes = {
   credentials: PropTypes.arrayOf(PropTypes.object).isRequired,
   setCredentials: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool.isRequired,
+  setLoading: PropTypes.func.isRequired,
   setError: PropTypes.func.isRequired,
 };
 
-export default CredentialsList;
+export default CredentialsTable;

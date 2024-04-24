@@ -34,7 +34,7 @@ const ResetPasswordForm = ({setError}) => {
   return (
     <div>
       { show ?
-        <>
+        (<>
           <Form
             form={form}
             onFinish={onFinish}
@@ -74,6 +74,7 @@ const ResetPasswordForm = ({setError}) => {
                 <Button
                   type="primary"
                   htmlType="submit"
+                  loading={isLoading}
                 >
                   Submit
                 </Button>
@@ -81,7 +82,7 @@ const ResetPasswordForm = ({setError}) => {
               </Space>
             </Form.Item>
           </Form>
-        </>:
+        </>):
         <Button type="primary" onClick={() => setShow(true)}>Reset</Button>
       }
     </div>

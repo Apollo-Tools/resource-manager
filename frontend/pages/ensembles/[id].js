@@ -11,6 +11,7 @@ import {listResourcesBySLOs} from '../../lib/api/ResourceService';
 import Head from 'next/head';
 import {siteTitle} from '../../components/misc/Sidebar';
 import PropTypes from 'prop-types';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 
 const {confirm} = Modal;
 
@@ -18,7 +19,13 @@ const EnsembleDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
   const [ensemble, setEnsemble] = useState();
   const [selectedSegment, setSelectedSegment] = useState('Details');
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState({
+    getEnsemble: true,
+    listResourcesBySLOs: true,
+    validatedResources: true,
+    deleteResource: false,
+    addResource: false,
+  });
   const [resourceToAdd, setResourcesToAdd] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
   const [validatedResources, setValidatedResources] = useState([]);
@@ -28,14 +35,16 @@ const EnsembleDetails = ({setError}) => {
 
   useEffect(() => {
     if (!checkTokenExpired() && id != null) {
-      void getEnsemble(id, token, setEnsemble, setLoading, setError);
+      void getEnsemble(Number(id), token, setEnsemble, updateLoadingState('getEnsemble', setLoading), setError);
     }
   }, [id]);
 
   useEffect(() => {
     if (!checkTokenExpired() && ensemble!=null) {
-      void listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd, setLoading, setError);
-      void validateEnsemble(id, token, setValidatedResources, setLoading, setError);
+      void listResourcesBySLOs(ensemble.slos, token, setResourcesToAdd,
+          updateLoadingState('listResourcesBySLOs', setLoading), setError);
+      void validateEnsemble(Number(id), token, setValidatedResources,
+          updateLoadingState('validatedResources', setLoading), setError);
     }
   }, [ensemble]);
 
@@ -58,13 +67,13 @@ const EnsembleDetails = ({setError}) => {
 
   const reloadEnsemble = async () => {
     if (!checkTokenExpired()) {
-      await getEnsemble(id, token, setEnsemble, setLoading, setError);
+      await getEnsemble(Number(id), token, setEnsemble, updateLoadingState('getEnsemble', setLoading), setError);
     }
   };
 
   const onDeleteEnsembleResource = (resourceId) => {
     if (!checkTokenExpired()) {
-      deleteResourceFromEnsemble(id, resourceId, token, setLoading, setError)
+      deleteResourceFromEnsemble(Number(id), resourceId, token, updateLoadingState('deleteResource', setLoading), setError)
           .then(async (result) => {
             if (result) {
               await reloadEnsemble();
@@ -75,7 +84,7 @@ const EnsembleDetails = ({setError}) => {
 
   const onAddEnsembleResource = (resourceId) => {
     if (!checkTokenExpired()) {
-      addResourceToEnsemble(id, resourceId, token, setLoading, setError)
+      addResourceToEnsemble(Number(id), resourceId, token, updateLoadingState('addResource', setLoading), setError)
           .then(async (result) => {
             if (result) {
               await reloadEnsemble();
@@ -127,14 +136,14 @@ const EnsembleDetails = ({setError}) => {
         <title>{`${siteTitle}: Ensemble Details`}</title>
       </Head>
       <div className="default-card">
-        <Typography.Title level={2}>Ensemble Details ({ensemble?.ensemble_id})</Typography.Title>
+        <Typography.Title level={2}>Ensemble Details ({id})</Typography.Title>
         <Divider />
         <Segmented options={['Details', 'Resources', 'Add Resources']} value={selectedSegment}
           onChange={(e) => setSelectedSegment(e)} size="large" block/>
         <Divider />
         {
-          selectedSegment === 'Details' && ensemble &&
-        <EnsembleDetailsCard ensemble={ensemble} setError={setError}/>
+          selectedSegment === 'Details' &&
+        <EnsembleDetailsCard ensemble={ensemble} setError={setError} isLoading={isLoading['getEnsemble']}/>
         }
         {
           selectedSegment === 'Resources' && ensemble && (
@@ -144,6 +153,7 @@ const EnsembleDetails = ({setError}) => {
                   resources={ensemble.resources}
                   hasActions onDelete={showDeleteConfirm}
                   getRowClassname={setInvalidRowClasses}
+                  isLoading={isLoading['getEnsemble'] || isLoading['validatedResources']}
                 />
               </div>
             </>)
@@ -157,6 +167,7 @@ const EnsembleDetails = ({setError}) => {
                 hasActions
                 resourceType="ensemble"
                 customButton={{icon: <PlusCircleOutlined />, onClick: showAddConfirm, tooltip: 'Add'}}
+                isLoading={isLoading['listResourcesBySLOs']}
               />
             </>
           )

@@ -1,7 +1,6 @@
 import {Skeleton} from 'antd';
 
-
-const TableSkeleton = ({isLoading, children}) => {
+const TableSkeleton = () => {
   return <Skeleton className="skeleton" active={false} />;
 };
 

@@ -15,12 +15,20 @@ import ResourceTable from '../../components/resources/ResourceTable';
 import DeploymentDetailsCard from '../../components/deployments/DeploymentDetailsCard';
 import DeploymentDashboards from '../../components/monitoring/DeploymentDashboards';
 import PropTypes from 'prop-types';
+import LoadingSpinner from '../../components/misc/LoadingSpinner';
+import {updateLoadingState} from '../../lib/misc/LoadingUtil';
 
 const {confirm} = Modal;
 
 const DeploymentDetails = ({setError}) => {
   const {token, checkTokenExpired} = useAuth();
-  const [isLoading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(
+      {
+        getDeployment: true,
+        listDeploymentLogs: true,
+        listLockedResources: true,
+        cancelDeployment: false,
+      });
   const [deployment, setDeployment] = useState();
   const [logs, setLogs] = useState([]);
   const [pollingDelay, setPollingDelay] = useState();
@@ -64,9 +72,10 @@ const DeploymentDetails = ({setError}) => {
 
   const refreshDeployment = async () => {
     setPollingDelay(null);
-    await getDeployment(id, token, setDeployment, setLoading, setError);
-    await listDeploymentLogs(id, token, setLogs, setLoading, setError);
-    await listLockedResources(id, token, setLockedResources, setLoading, setError);
+    await getDeployment(Number(id), token, setDeployment, updateLoadingState('getDeployment', setLoading), setError);
+    await listDeploymentLogs(Number(id), token, setLogs, updateLoadingState('listDeploymentLogs', setLoading), setError);
+    await listLockedResources(Number(id), token, setLockedResources, updateLoadingState('listLockedResources', setLoading),
+        setError);
   };
 
   const checkDeploymentStatus = () => {
@@ -106,7 +115,7 @@ const DeploymentDetails = ({setError}) => {
 
   const onClickCancel = async (id) => {
     if (!checkTokenExpired()) {
-      await cancelDeployment(id, token, setLoading, setError)
+      await cancelDeployment(id, token, updateLoadingState('cancelDeployment', setLoading), setError)
           .then(() => refreshDeployment());
     }
   };
@@ -125,65 +134,69 @@ const DeploymentDetails = ({setError}) => {
     });
   };
 
-  if (deployment == null) {
-    return <></>;
-  }
-
   return (
     <>
       <Head>
         <title>{`${siteTitle}: Deployment Details`}</title>
       </Head>
-      <div className="default-card">
-        <Typography.Title level={ 2 }>
-          <DeploymentStatusCircle isNew={deploymentStatus.isNew}
-            isDeployed={deploymentStatus.isDeployed}
-            isTerminating={deploymentStatus.isTerminating}
-            isTerminated={deploymentStatus.isTerminated}
-            isError={deploymentStatus.isError}
-          />
-        Deployment Details ({ id })
-          <div className="float-right">
-            <Tooltip title="Refresh">
-              <Button icon={<ReloadOutlined />}
-                className="bg-yellow-50 text-yellow-500 border-yellow-500"
-                onClick={refreshDeployment}
+      {deployment == null || Object.values(isLoading).some((a) => a) ?
+        <div className="flex justify-center h-screen pt-32">
+          <LoadingSpinner />
+        </div> :
+        <div className="default-card">
+          <Typography.Title level={ 2 }>
+            <DeploymentStatusCircle isNew={deploymentStatus.isNew}
+              isDeployed={deploymentStatus.isDeployed}
+              isTerminating={deploymentStatus.isTerminating}
+              isTerminated={deploymentStatus.isTerminated}
+              isError={deploymentStatus.isError}
+            />
+          Deployment Details ({ id })
+            <div className="float-right">
+              <Tooltip title="Refresh">
+                <Button icon={<ReloadOutlined />}
+                  className="bg-yellow-50 text-yellow-500 border-yellow-500"
+                  onClick={refreshDeployment}
+                />
+              </Tooltip>
+              {deploymentStatus.isDeployed &&
+            <Tooltip title="Cancel Deployment">
+              <Button
+                onClick={ () => showCancelConfirm(id) }
+                icon={ <DisconnectOutlined/> }
+                className="ml-2 bg-red-50 text-red-500 border-red-500"
+                loading={isLoading['cancelDeployment']}
               />
             </Tooltip>
-            {deploymentStatus.isDeployed &&
-          <Tooltip title="Cancel Deployment">
-            <Button onClick={ () => showCancelConfirm(id) }
-              icon={ <DisconnectOutlined/> } className="ml-2 bg-red-50 text-red-500 border-red-500"/>
-          </Tooltip>
-            }
-          </div>
-        </Typography.Title>
-        <DeploymentDetailsCard deployment={deployment} />
-        <Typography.Title level={3}>Resource Deployments</Typography.Title>
-        <Divider/>
-        {deployment.function_resources.length > 0 &&
-          <ResourceDeploymentTable resourceDeployments={deployment.function_resources} type='function'/>}
-        {deployment.service_resources.length > 0 &&
-          <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
-        <Divider />
-        {lockedResources.length > 0 &&
-          <>
-            <Typography.Title level={3}>Locked Resources</Typography.Title>
-            <ResourceTable resources={lockedResources} hasActions={true} resourceType='all'/>
-            <Divider />
-          </>
-        }
-        <Typography.Title level={3}>Logs</Typography.Title>
-        <LogsDisplay logs={logs}/>
-        <Divider />
-        <Typography.Title level={3}>Monitoring</Typography.Title>
-        <DeploymentDashboards
-          deploymentId={id}
-          isActive={deploymentStatus.isNew || deploymentStatus.isDeployed || deploymentStatus.isTerminating}
-          functionResourceIds={functionResourceIds}
-          serviceResourceIds={serviceResourceIds}
-        />
-      </div>
+              }
+            </div>
+          </Typography.Title>
+          <DeploymentDetailsCard deployment={deployment} />
+          <Typography.Title level={3}>Resource Deployments</Typography.Title>
+          <Divider/>
+          {deployment.function_resources.length > 0 &&
+            <ResourceDeploymentTable resourceDeployments={deployment.function_resources} type='function'/>}
+          {deployment.service_resources.length > 0 &&
+            <ResourceDeploymentTable resourceDeployments={deployment.service_resources} type='service'/>}
+          <Divider />
+          {lockedResources.length > 0 &&
+            <>
+              <Typography.Title level={3}>Locked Resources</Typography.Title>
+              <ResourceTable resources={lockedResources} hasActions={true} resourceType='all'/>
+              <Divider />
+            </>
+          }
+          <Typography.Title level={3}>Logs</Typography.Title>
+          <LogsDisplay logs={logs}/>
+          <Divider />
+          <Typography.Title level={3}>Monitoring</Typography.Title>
+          <DeploymentDashboards
+            deploymentId={Number(id)}
+            isActive={deploymentStatus.isNew || deploymentStatus.isDeployed || deploymentStatus.isTerminating}
+            functionResourceIds={functionResourceIds}
+            serviceResourceIds={serviceResourceIds}
+          />
+        </div>}
     </>
   );
 };

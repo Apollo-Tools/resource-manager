@@ -1,8 +1,9 @@
-import {Button, Modal, Space, Table} from 'antd';
+import {Button, Empty, Modal, Space, Table} from 'antd';
 import {DeleteOutlined, ExclamationCircleFilled} from '@ant-design/icons';
 import ProviderIcon from '../misc/ProviderIcon';
 import PropTypes from 'prop-types';
 import DateColumnRender from '../misc/DateColumnRender';
+import TableSkeleton from '../misc/TableSkeleton';
 
 const {Column} = Table;
 const {confirm} = Modal;
@@ -11,6 +12,7 @@ const VPCTable = ({
   vpcs,
   onDelete,
   hasActions,
+  isLoading,
 }) => {
   const showDeleteConfirm = (id) => {
     confirm({
@@ -27,7 +29,12 @@ const VPCTable = ({
   };
 
   return (
-    <Table dataSource={vpcs} rowKey={(record) => record.vpc_id} size={'small'}>
+    <Table
+      dataSource={vpcs}
+      rowKey={(record) => record.vpc_id}
+      size={'small'}
+      locale={{emptyText: isLoading ? <TableSkeleton /> : <Empty />}}
+    >
       <Column title="Id" dataIndex="vpc_id" key="id"
         sorter={(a, b) => a.vpc_id - b.vpc_id}
         defaultSortOrder="ascend"
@@ -68,6 +75,7 @@ VPCTable.propTypes={
   vpcs: PropTypes.array.isRequired,
   onDelete: PropTypes.func,
   hasActions: PropTypes.bool,
+  isLoading: PropTypes.bool.isRequired,
 };
 
 export default VPCTable;

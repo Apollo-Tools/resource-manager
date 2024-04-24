@@ -1,11 +1,10 @@
 import {useEffect, useState} from 'react';
-import {Button, Form, Input, Modal} from 'antd';
+import {Button, Form, Input} from 'antd';
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import {deployResources} from '../../lib/api/DeploymentService';
 import {useAuth} from '../../lib/misc/AuthenticationProvider';
 import PropTypes from 'prop-types';
 import NothingToSelectCard from './NothingToSelectCard';
-import LoadingSpinner from '../misc/LoadingSpinner';
 
 
 const AddCredentials = ({functionResources, serviceResources, lockResources, ensembleId, alertingUrl, next, prev,
@@ -82,71 +81,61 @@ const AddCredentials = ({functionResources, serviceResources, lockResources, ens
     }
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-  };
-
   return (
-    <>
-      <Modal open={isLoading} footer={null} closable={false}>
-        <LoadingSpinner isCard={false}/>
-      </Modal>;
-      <Form
-        form={form}
-        name="dockerCredentials"
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-        autoComplete="off"
-        layout="vertical"
+    <Form
+      form={form}
+      name="dockerCredentials"
+      onFinish={onFinish}
+      autoComplete="off"
+      layout="vertical"
+    >
+      {!needsDockerCreds && <NothingToSelectCard text="No credentials required for this deployment"/>}
+      <Form.Item
+        label="Docker registry"
+        name="dockerRegistry"
+        hidden={!needsDockerCreds}
+        rules={[
+          {
+            required: needsDockerCreds,
+            message: 'Please input a valid docker registry!',
+          },
+        ]}
       >
-        {!needsDockerCreds && <NothingToSelectCard text="No credentials required for this deployment"/>}
-        <Form.Item
-          label="Docker registry"
-          name="dockerRegistry"
-          hidden={!needsDockerCreds}
-          rules={[
-            {
-              required: needsDockerCreds,
-              message: 'Please input a valid docker registry!',
-            },
-          ]}
-        >
-          <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="docker.io"/>
-        </Form.Item>
+        <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="docker.io"/>
+      </Form.Item>
 
-        <Form.Item
-          label="Docker Username"
-          name="dockerUsername"
-          hidden={!needsDockerCreds}
-          rules={[
-            {
-              required: needsDockerCreds,
-              message: 'Please input your docker username!',
-            },
-          ]}
-        >
-          <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Docker Username"/>
-        </Form.Item>
+      <Form.Item
+        label="Docker Username"
+        name="dockerUsername"
+        hidden={!needsDockerCreds}
+        rules={[
+          {
+            required: needsDockerCreds,
+            message: 'Please input your docker username!',
+          },
+        ]}
+      >
+        <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Docker Username"/>
+      </Form.Item>
 
-        <Form.Item
-          label="Docker Access Token"
-          name="dockerAccessToken"
-          hidden={!needsDockerCreds}
-          rules={[
-            {
-              required: needsDockerCreds,
-              message: 'Please input a valid docker access token with write permissions!',
-            },
-          ]}
-        >
-          <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" className="float-right">Deploy</Button>
-          <Button type="default" onClick={prev} className="float-left">Back</Button>
-        </Form.Item>
-      </Form>
-    </>
+      <Form.Item
+        label="Docker Access Token"
+        name="dockerAccessToken"
+        hidden={!needsDockerCreds}
+        rules={[
+          {
+            required: needsDockerCreds,
+            message: 'Please input a valid docker access token with write permissions!',
+          },
+        ]}
+      >
+        <Input.Password prefix={<LockOutlined className="site-form-item-icon" />}/>
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit" className="float-right" loading={isLoading}>Deploy</Button>
+        <Button type="default" onClick={prev} className="float-left">Back</Button>
+      </Form.Item>
+    </Form>
   );
 };
 
