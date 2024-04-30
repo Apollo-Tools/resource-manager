@@ -8,7 +8,9 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Represents the deployment entity.
@@ -32,10 +34,10 @@ public class Deployment {
     private Ensemble ensemble;
 
     @OneToMany(mappedBy = "deployment", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private List<FunctionDeployment> functionDeployments = new ArrayList<>();
+    private Set<FunctionDeployment> functionDeployments = new HashSet<>();
 
     @OneToMany(mappedBy = "deployment", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
-    private List<ServiceDeployment> serviceDeployments = new ArrayList<>();
+    private Set<ServiceDeployment> serviceDeployments = new HashSet<>();
 
     @OneToMany(mappedBy = "lockedByDeployment", cascade = CascadeType.ALL)
     private List<Resource> lockedResources = new ArrayList<>();

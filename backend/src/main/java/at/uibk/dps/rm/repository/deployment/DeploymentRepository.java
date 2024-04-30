@@ -34,6 +34,10 @@ public class DeploymentRepository extends Repository<Deployment> {
     public Single<List<Deployment>> findAllByAccountId(SessionManager sessionManager, long accountId) {
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select distinct d from Deployment d " +
+                "left join fetch d.functionDeployments fd " +
+                "left join fetch d.serviceDeployments sd " +
+                "left join fetch fd.status " +
+                "left join fetch sd.status " +
                 "where d.createdBy.accountId=:accountId " +
                 "order by d.id", entityClass)
             .setParameter("accountId", accountId)

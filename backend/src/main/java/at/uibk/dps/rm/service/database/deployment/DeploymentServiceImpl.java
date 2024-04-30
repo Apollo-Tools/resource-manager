@@ -94,7 +94,7 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
             .getDeploymentRepository()
             .findAllByAccountId(sm, accountId)
             .flatMapObservable(Observable::fromIterable)
-            .flatMapSingle(deployment -> deploymentUtility.composeDeploymentResponse(sm, deployment))
+            .flatMapSingle(deploymentUtility::composeDeploymentResponse)
             .toList()
         );
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);

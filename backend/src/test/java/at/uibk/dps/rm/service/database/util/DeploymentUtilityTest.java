@@ -102,7 +102,7 @@ public class DeploymentUtilityTest {
         try(MockedStatic<DeploymentStatusUtility> mock = Mockito.mockStatic(DeploymentStatusUtility.class)) {
             mock.when(() -> DeploymentStatusUtility.checkCrucialResourceDeploymentStatus(resourceDeployments))
                 .thenReturn(status);
-            utility.composeDeploymentResponse(sessionManager, deploymentSpy)
+            utility.composeDeploymentResponse(deploymentSpy)
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getDeploymentId()).isEqualTo(deploymentId);
                         assertThat(result.getStatusValue()).isEqualTo(status);

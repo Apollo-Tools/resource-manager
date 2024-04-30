@@ -4,11 +4,15 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
 import at.uibk.dps.rm.entity.dto.deployment.DeploymentResponse;
 import at.uibk.dps.rm.entity.model.Deployment;
+import at.uibk.dps.rm.entity.model.ResourceDeployment;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import lombok.AllArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A utility class that provides various methods to process deployment entities.
@@ -23,18 +27,19 @@ public class DeploymentUtility {
     /**
      * Get the status of a Deployment and map it to a {@link DeploymentResponse}.
      *
-     * @param sm an active session manager
      * @param deployment the deployment
      * @return the composed DeploymentResponse
      */
-    public Single<DeploymentResponse> composeDeploymentResponse(SessionManager sm, Deployment deployment) {
+    public Single<DeploymentResponse> composeDeploymentResponse(Deployment deployment) {
         DeploymentResponse deploymentResponse = new DeploymentResponse();
         deploymentResponse.setDeploymentId(deployment.getDeploymentId());
         deploymentResponse.setCreatedAt(deployment.getCreatedAt());
         deploymentResponse.setFinishedAt(deployment.getFinishedAt());
-        return repositoryProvider.getResourceDeploymentRepository()
-            .findAllByDeploymentIdAndFetch(sm, deployment.getDeploymentId())
-            .map(resourceDeployments -> {
+        return Single.just(deployment)
+            .map(currDeployment -> {
+                List<ResourceDeployment> resourceDeployments = new ArrayList<>();
+                resourceDeployments.addAll(currDeployment.getFunctionDeployments());
+                resourceDeployments.addAll(currDeployment.getServiceDeployments());
                 DeploymentStatusValue crucialDeploymentStatus = DeploymentStatusUtility
                     .checkCrucialResourceDeploymentStatus(resourceDeployments);
                 deploymentResponse.setStatusValue(crucialDeploymentStatus);
