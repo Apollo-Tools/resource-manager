@@ -84,6 +84,7 @@ public class SLOValidator {
                     instanceTypeResources.put(PlatformEnum.LAMBDA.getValue(),
                         resource.getResourceId().toString());
                 }
+                mainResourceIds.add(String.valueOf(resource.getResourceId()));
             }
         });
     }
