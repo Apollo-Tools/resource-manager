@@ -7,8 +7,10 @@ import at.uibk.dps.rm.service.database.util.SessionManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import org.hibernate.reactive.stage.Stage;
 
 import java.util.List;
+import java.util.concurrent.CompletionStage;
 
 /**
  * Implements database operations for the deployment entity.
@@ -32,17 +34,25 @@ public class DeploymentRepository extends Repository<Deployment> {
      * @return a Single that emits a list of all deployments
      */
     public Single<List<Deployment>> findAllByAccountId(SessionManager sessionManager, long accountId) {
-        return Single.fromCompletionStage(sessionManager.getSession()
+        // Necessary to prevent cartesian product. See: https://stackoverflow.com/a/51055523
+        Stage.Session session = sessionManager.getSession();
+        CompletionStage<List<Deployment>> query = session
             .createQuery("select distinct d from Deployment d " +
                 "left join fetch d.functionDeployments fd " +
-                "left join fetch d.serviceDeployments sd " +
                 "left join fetch fd.status " +
-                "left join fetch sd.status " +
-                "where d.createdBy.accountId=:accountId " +
-                "order by d.id", entityClass)
+                "where d.createdBy.accountId=:accountId ", entityClass)
             .setParameter("accountId", accountId)
             .getResultList()
-        );
+            .thenCompose(deployments -> session
+                .createQuery("select distinct d from Deployment d " +
+                    "left join fetch d.serviceDeployments sd " +
+                    "left join fetch sd.status " +
+                    "where d in :deployments " +
+                    "order by d.id", entityClass)
+                .setParameter("deployments", deployments)
+                .getResultList()
+            );
+        return Single.fromCompletionStage(query);
     }
 
 
