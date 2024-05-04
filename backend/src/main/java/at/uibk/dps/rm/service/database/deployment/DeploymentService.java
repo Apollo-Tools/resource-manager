@@ -16,6 +16,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.util.List;
+
 /**
  * The interface of the service proxy for the deployment entity.
  *
@@ -41,6 +43,21 @@ public interface DeploymentService extends DatabaseServiceInterface {
     void findOneForServiceOperationByIdAndAccountId(long id, long accountId, boolean ignoreRunningStateChange,
         Handler<AsyncResult<JsonObject>> resultHandler);
 
+    /**
+     * Find all deployments with the error state by their ids.
+     *
+     * @param ids the ids of the deployments
+     * @param resultHandler receives the found entities as JsonArray
+     */
+    void findAllWithErrorStateByIds(List<Long> ids, Handler<AsyncResult<JsonArray>> resultHandler);
+
+    /**
+     * Set the service state change to false that indicates that a service operation has finished.
+     *
+     * @param id the id of the deployment
+     * @param accountId the id of the creator account
+     * @param resultHandler receives nothing if the update was successful else an error
+     */
     void finishServiceOperation(long id, long accountId, Handler<AsyncResult<Void>> resultHandler);
 
     /**
