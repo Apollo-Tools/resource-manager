@@ -52,6 +52,7 @@ public class MonitoringVerticle extends AbstractVerticle {
             latencyMonitoringUtility));
         monitoringHandlers.add(new RegionMonitoringHandler(vertx, config, serviceProxyProvider,
             latencyMonitoringUtility));
+        monitoringHandlers.add(new FileCleanupHandler(vertx, config, serviceProxyProvider));
         return setupEventBus(config)
             .andThen(startMonitoringLoops())
             .doOnComplete(() -> logger.info("Started monitoring loop"))

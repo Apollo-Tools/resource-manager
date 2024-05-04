@@ -203,6 +203,15 @@ public class DeploymentServiceImpl extends DatabaseServiceProxy<Deployment> impl
     }
 
     @Override
+    public void findAllWithErrorStateByIds(List<Long> ids, Handler<AsyncResult<JsonArray>> resultHandler) {
+        Single<List<Deployment>> findAll = smProvider.withTransactionSingle(sm -> repositoryProvider
+            .getDeploymentRepository()
+            .findAllWithErrorStateByIds(sm, ids)
+        );
+        RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
+    }
+
+    @Override
     public void finishServiceOperation(long id, long accountId, Handler<AsyncResult<Void>> resultHandler) {
         Completable finishStateChange = smProvider.withTransactionCompletable(sm -> repositoryProvider
             .getDeploymentRepository()

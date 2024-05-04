@@ -45,4 +45,5 @@ public class ConfigDTO {
     private Double openfaasMonitoringPeriod;
     private Double regionMonitoringPeriod;
     private Double awsPriceMonitoringPeriod;
+    private Double fileCleanupPeriod;
 }

@@ -9,6 +9,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import org.hibernate.reactive.stage.Stage;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -90,6 +91,32 @@ public class DeploymentRepository extends Repository<Deployment> {
             .setParameter("accountId", accountId)
             .getSingleResultOrNull()
         );
+    }
+
+    /**
+     * Find all deployments with error state by their ids
+     *
+     * @param sessionManager the database session manager
+     * @param ids the ids of the deployments
+     * @return a Single that emits the deployments
+     */
+    public Single<List<Deployment>> findAllWithErrorStateByIds(SessionManager sessionManager, List<Long> ids) {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MINUTE, -15);
+        return Single.fromCompletionStage(sessionManager.getSession()
+            .createQuery("select distinct d from Deployment d " +
+                "left join d.functionDeployments fd " +
+                "left join fd.status " +
+                "left join d.serviceDeployments sd " +
+                "left join sd.status " +
+                "where d.deploymentId in :ids and " +
+                "((fd.status.statusValue=:errorStatus and fd.updatedAt < :lastUpdate) or " +
+                    "(sd.updatedAt < :lastUpdate and sd.status.statusValue=:errorStatus))",
+                entityClass)
+            .setParameter("ids", ids)
+            .setParameter("lastUpdate", cal.getTime())
+            .setParameter("errorStatus", DeploymentStatusValue.ERROR.getValue())
+            .getResultList());
     }
 
     /**
