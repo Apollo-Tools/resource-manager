@@ -5,6 +5,7 @@ import {Collapse} from 'antd';
 import K8sResourceDashboard from './K8sResourceDashboard';
 import K8sPodDashboard from './K8sPodDashboard';
 import {useEffect, useState} from 'react';
+import ServiceDashboard from './ServiceDashboard';
 
 
 const DeploymentDashboards = ({deploymentId, functionResourceIds, serviceResourceIds, isActive = true}) => {
@@ -44,6 +45,12 @@ const DeploymentDashboards = ({deploymentId, functionResourceIds, serviceResourc
         label: 'K8s Resources',
         children: (
           <>
+            <div className="m-[-12px] mb-[-18px] mt-[0px]">
+              <ServiceDashboard
+                deploymentId={deploymentId}
+                isActive={isActive}
+              />
+            </div>
             <div className="m-[-12px] mb-[-18px] mt-[0px]">
               <K8sPodDashboard
                 deploymentId={deploymentId}

@@ -42,13 +42,14 @@ public class ServiceStartupShutdownPushServiceImpl extends ServiceProxy implemen
     public void composeAndPushMetric(JsonObject serviceStartupShutdownTime, Handler<AsyncResult<Void>> resultHandler) {
         ServiceStartupShutdownTime serviceExecutionTime = serviceStartupShutdownTime
             .mapTo(ServiceStartupShutdownTime.class);
-        String metricName = "service_" + (serviceExecutionTime.getIsStartup() ? "startup" : "termination" ) +
+        String metricName = "service_" + (serviceExecutionTime.getIsStartup() ? "startup" : "shutdown" ) +
             "_time_seconds";
         List<OpenTSDBEntity> openTSDBEntities = serviceExecutionTime.getServiceDeployments().stream()
             .map(serviceDeployment -> new OpenTSDBEntity(metricName, serviceExecutionTime.getExecutionTime(),
                 Map.of("request_id", serviceExecutionTime.getId(),
+                    "deployment", Long.toString(serviceExecutionTime.getDeploymentId()),
                     "resource_deployment", Long.toString(serviceDeployment.getResourceDeploymentId()),
-                    "serviceId", Long.toString(serviceDeployment.getService().getServiceId()),
+                    "service", Long.toString(serviceDeployment.getService().getServiceId()),
                     "resource", Long.toString(serviceDeployment.getResource().getResourceId()))))
             .collect(Collectors.toList());
 

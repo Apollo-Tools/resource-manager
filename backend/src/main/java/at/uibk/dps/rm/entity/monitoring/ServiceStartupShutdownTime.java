@@ -14,6 +14,8 @@ public class ServiceStartupShutdownTime {
 
     private String id;
 
+    private long deploymentId;
+
     @JsonProperty
     private double executionTime;
 
@@ -25,10 +27,12 @@ public class ServiceStartupShutdownTime {
 
     @JsonCreator
     public ServiceStartupShutdownTime(@JsonProperty("id") String id,
+                                      @JsonProperty("deployment_id") long deploymentId,
                                       @JsonProperty("execution_time") double executionTime,
                                       @JsonProperty("service_deployments") List<ServiceDeployment> serviceDeployments,
                                       @JsonProperty("is_startup") boolean isStartup) {
         this.id = id;
+        this.deploymentId = deploymentId;
         this.executionTime = executionTime;
         this.serviceDeployments = serviceDeployments;
         this.isStartup = isStartup;
