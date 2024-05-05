@@ -113,8 +113,8 @@ public class InvocationHandler {
                         double executionTime = (endTime - startTime) / 1_000_000_000.0;
                         UUID requestId = UUID.randomUUID();
                         ServiceStartupShutdownTime serviceStartupShutdownTime =
-                            new ServiceStartupShutdownTime(requestId.toString(), executionTime,
-                                serviceDeployments, isStartup);
+                            new ServiceStartupShutdownTime(requestId.toString(), request.getDeploymentId(),
+                                executionTime, serviceDeployments, isStartup);
                         serviceProxyProvider.getServiceStartStopPushService()
                             .composeAndPushMetric(JsonObject.mapFrom(serviceStartupShutdownTime))
                             .subscribe();

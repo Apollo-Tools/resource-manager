@@ -82,7 +82,7 @@ const Sidebar = ({children}) => {
   return (
     <Layout hasSider className="min-h-screen">
       {authenticated &&
-      <Sider className="h-screen z-[1001] fixed inset-y-0 left-0 mt-16" collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme='dark'>
+      <Sider className="h-screen z-[1001] fixed inset-y-0 left-0 mt-14" collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} theme='dark'>
         <Menu theme="dark"
           items={items}
           mode="inline"
@@ -92,11 +92,11 @@ const Sidebar = ({children}) => {
         />
       </Sider>}
       <Header
-        className="h-16 pl-3 fixed top-0 z-[1001] w-full flex gap-5
+        className="h-14 pl-3 fixed top-0 z-[1001] w-full flex gap-5
          items-center bg-gradient-to-r from-primary via-primary to-blue-900"
       >
-        <Image src="/rm_logo_white.svg" height="64" width="64" alt="Logo"/>
-        <div className="w-full text-white text-lg text-start">{siteTitle}</div>
+        <Image src="/rm_logo_white.svg" height="60" width="60" alt="Logo"/>
+        <div className="w-full text-white text-lg text-start bold">{siteTitle}</div>
       </Header>
       {authenticated ?
         <Layout className="site-layout ml-[200px] mt-16">
