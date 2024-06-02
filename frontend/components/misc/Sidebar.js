@@ -47,12 +47,12 @@ const Sidebar = ({children}) => {
 
   const items = [
     getItem(<Link href="/" ><AppstoreOutlined /><span>Overview</span></Link>, '0'),
-    getItem(<><DesktopOutlined /><span>Resources</span></>, '1', [
+    getItem(<><DesktopOutlined /><span>Manage</span></>, '1', [
       getItem(<Link href="/resources/resources" ><CloudServerOutlined /><span>Resources</span></Link>, '1.2'),
       getItem(<Link href="/functions/functions"><FunctionOutlined /><span>Functions</span></Link>, '1.3'),
       getItem(<Link href="/services/services"><DeploymentUnitOutlined /><span>Services</span></Link>, '1.4'),
     ]),
-    getItem(<><BookOutlined /><span>Reservations</span></>, '2', [
+    getItem(<><BookOutlined /><span>Deploy</span></>, '2', [
       getItem(<Link href="/ensembles/ensembles" ><DatabaseOutlined /><span>Ensembles</span></Link>, '2.1'),
       getItem(<Link href="/deployments/deployments" ><GroupOutlined /><span>Deployments</span></Link>, '2.2'),
     ]),
