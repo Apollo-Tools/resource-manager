@@ -79,13 +79,19 @@ public abstract class TerraformFileService {
         List<Completable> completables = new ArrayList<>();
 
         String mainContent = this.getMainFileContent();
-        completables.add(createTerraformFile(fileNamePrefix + "main.tf", mainContent));
+        if (!mainContent.isEmpty()) {
+            completables.add(createTerraformFile(fileNamePrefix + "main.tf", mainContent));
+        }
 
         String variableContent = this.getVariablesFileContent();
-        completables.add(createTerraformFile(fileNamePrefix + "variables.tf", variableContent));
+        if (!variableContent.isEmpty()) {
+            completables.add(createTerraformFile(fileNamePrefix + "variables.tf", variableContent));
+        }
 
         String outputContent = this.getOutputsFileContent();
-        completables.add(createTerraformFile(fileNamePrefix + "outputs.tf", outputContent));
+        if (!outputContent.isEmpty()) {
+            completables.add(createTerraformFile(fileNamePrefix + "outputs.tf", outputContent));
+        }
         return Completable.merge(completables);
     }
 

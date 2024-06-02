@@ -12,7 +12,6 @@ import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.util.misc.RegionMapper;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
@@ -215,13 +214,9 @@ public class TerraformSetupService {
         TerraformModule deployModule = new ServiceModule("service_deploy",
             ModuleType.SERVICE_DEPLOY);
         Path deployDir = deploymentPath.getModuleFolder(deployModule);
-        List<Completable> completables = new ArrayList<>();
-        for (ServiceDeployment serviceDeployment : serviceDeployments) {
-            ServiceDeployFileService serviceDeployFileService = new ServiceDeployFileService(fileSystem,
-                deployDir, serviceDeployment, deploymentId, config);
-            completables.add(serviceDeployFileService.setUpDirectory());
-        }
-        return Completable.merge(completables)
+        ServiceDeployFileService serviceDeployFileService = new ServiceDeployFileService(fileSystem,
+            deployDir, serviceDeployments, deploymentId, config);
+        return serviceDeployFileService.setUpDirectory()
             .toSingle(() -> deployModule);
     }
 }
