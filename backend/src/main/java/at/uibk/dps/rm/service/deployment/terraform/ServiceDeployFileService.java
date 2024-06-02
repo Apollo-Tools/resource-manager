@@ -23,22 +23,22 @@ public class ServiceDeployFileService extends TerraformFileService {
 
     private final long deploymentId;
 
-    private final ServiceDeployment serviceDeployment;
+    private final List<ServiceDeployment> serviceDeployments;
 
     private final ConfigDTO config;
 
     /**
-     * Create an instance from the fileSystem, rootFolder, serviceDeployment and deploymentId.
+     * Create an instance from the fileSystem, rootFolder, serviceDeployments and deploymentId.
      *
      * @param fileSystem the vertx file system
      * @param rootFolder the root folder of the module
-     * @param serviceDeployment the service deployment
+     * @param serviceDeployments the service deployments
      * @param deploymentId the id of the deployment
      */
-    public ServiceDeployFileService(FileSystem fileSystem, Path rootFolder, ServiceDeployment serviceDeployment,
+    public ServiceDeployFileService(FileSystem fileSystem, Path rootFolder, List<ServiceDeployment> serviceDeployments,
                                     long deploymentId, ConfigDTO config) {
-        super(fileSystem, rootFolder, serviceDeployment.getResourceDeploymentId().toString());
-        this.serviceDeployment = serviceDeployment;
+        super(fileSystem, rootFolder);
+        this.serviceDeployments = serviceDeployments;
         this.deploymentId = deploymentId;
         this.config = config;
     }
@@ -50,15 +50,17 @@ public class ServiceDeployFileService extends TerraformFileService {
 
     @Override
     protected String getMainFileContent() {
-        return getServiceModuleString();
+        return serviceDeployments.stream().map(this::getServiceModuleString).collect(Collectors.joining());
     }
 
     /**
-     * Get the string that defines the service deployments from the terraform module.
+     * Get the string that defines a service deployment from the terraform module.
+     *
+     * @param serviceDeployment the service deployment
      *
      * @return the service module string
      */
-    private String getServiceModuleString() {
+    private String getServiceModuleString(ServiceDeployment serviceDeployment) {
         StringBuilder moduleString = new StringBuilder();
         Resource resource = serviceDeployment.getResource();
         Service service = serviceDeployment.getService();
@@ -124,14 +126,16 @@ public class ServiceDeployFileService extends TerraformFileService {
 
     @Override
     protected String getOutputsFileContent() {
-        long identifier = serviceDeployment.getResourceDeploymentId();
-        return String.format(
-            "output \"service_deployment_%s\" {\n" +
-            "  value = {\n" +
-            "    service: module.deployment_%s.service_info\n" +
-            "    pods: module.deployment_%s.pods_info\n" +
-            "  }\n" +
-            "}", identifier, identifier, identifier
-        );
+        return serviceDeployments.stream().map(serviceDeployment -> {
+            long identifier = serviceDeployment.getResourceDeploymentId();
+            return String.format(
+                "output \"service_deployment_%s\" {\n" +
+                "  value = {\n" +
+                "    service: module.deployment_%s.service_info\n" +
+                "    pods: module.deployment_%s.pods_info\n" +
+                "  }\n" +
+                "}\n", identifier, identifier, identifier
+            );
+        }).collect(Collectors.joining());
     }
 }
