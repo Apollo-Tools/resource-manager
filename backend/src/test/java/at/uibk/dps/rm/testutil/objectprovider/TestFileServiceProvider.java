@@ -140,7 +140,7 @@ public class TestFileServiceProvider {
     public static ServiceDeployFileService createContainerDeployFileService(FileSystem fileSystem, Path rootFolder,
                                                                             Deployment deployment) {
         ServiceDeployment serviceDeployment = TestServiceProvider.createServiceDeployment(1L, deployment);
-        return new ServiceDeployFileService(fileSystem, rootFolder, serviceDeployment,
+        return new ServiceDeployFileService(fileSystem, rootFolder, List.of(serviceDeployment),
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
@@ -148,7 +148,7 @@ public class TestFileServiceProvider {
                                                                             Resource resource, Deployment deployment) {
         ServiceDeployment serviceDeployment =
             TestServiceProvider.createServiceDeployment(1L, resource, deployment);
-        return new ServiceDeployFileService(fileSystem, rootFolder, serviceDeployment,
+        return new ServiceDeployFileService(fileSystem, rootFolder, List.of(serviceDeployment),
             deployment.getDeploymentId(), TestConfigProvider.getConfigDTO());
     }
 
