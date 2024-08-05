@@ -3,7 +3,7 @@ info:
   version: "1.0.8"
   title: "Resource Manager"
   description: |
-    This is the API specification for the Apollo Resource Manager. The api provides various routes to 
+    This is the API specification for the **Apollo Resource Manager**. The api provides various routes to 
     sign-up/login, manage resources, functions and services, get resources based on Service Level Objectives (SLOs) 
     and automatically deploy and terminate resources. 
     
@@ -13,15 +13,15 @@ info:
     
     ## Platforms
     - **lambda**: [AWS Lambda](https://aws.amazon.com/lambda/) is a serverless compute platform hosted by Amazon Web
-      Services. This platform supports the deployment of **faas** resources.
+      Services. This platform supports the deployment of **functions**.
     - **ec2**: [Amazon EC2 (Elastic Compute Cloud)](https://aws.amazon.com/de/ec2/) offers virtual machines for rental
-      to users and is hosted by Amazon Web Services. This platform supports the deployment of **faas** resources.
+      to users and is hosted by Amazon Web Services. This platform supports the deployment of **functions**.
     - **openfaas**: [OpenFaaS](https://www.openfaas.com/) is a serverless framework that can be self-hosted on 
       kubernetes or [faasd](https://github.com/openfaas/faasd). If this platform is selected for a resource, it is 
       required that the concerning resource has an up and running instance of OpenFaaS. This platform supports the
-      deployment of **faas** resources.
+      deployment of **functions**.
     - **k8s**: [Kubernetes](https://kubernetes.io) is a container orchestration system that is expected to be 
-      self-hosted by the user. This platform supports the deployment of **container** resources.
+      self-hosted by the user. This platform supports the deployment of **services**.
     
     ## Metrics
     Metrics are associated with resources and are used for the deployment and monitoring. There are two types of 
@@ -29,10 +29,11 @@ info:
     - **monitored**: Monitored metrics are automatically collected by the monitoring system of the RM. Examples of 
     this type of metric are price, availability, latency and cpu utilisation of a resource.
     - **non-monitored**: These are user-set properties that are used primarily for resource deployment. Examples
-    for this type of metric are the memory required for serverless functions or the instance type of a virtual machine.
+    for this type of metric are the gateway-url of OpenFaaS resources or the instance type of a virtual machine.
     
     Not all platforms support/require the same metrics. The /platforms/{id}/metrics route can be used to get all 
-    metrics that are supported for a particular platform. The value types for metrics can be *string*, *number* and 
+    metrics that are supported for a particular platform. The value types for metrics can be either *string*, *number* 
+    and 
     *boolean*.
     
     ## Resources
@@ -44,8 +45,8 @@ info:
     It also possible for resources to have sub-resources. This type of resource hierarchy is currently only supported 
     for container resources. A subresource in the context of a container resource would be a node of a k8s cluster. 
     If a container resource is set up correctly on the resource manager including a valid kube config that is readable
-    by the monitoring system, sub resources are added, updated and deleted automatically. *Sub-resources can not have
-    another set of sub-resources and it is not possible to register them manually.*
+    by the monitoring system, sub resources are added, updated and deleted automatically. 
+    > Sub-resources can not have another set of sub-resources and it is not possible to register them manually.
     
     ### Setting up container resources
     For each resource of type *container*, a valid kube config must be provided. It has to be set up in a way
@@ -57,8 +58,9 @@ info:
       resource at the resource manager.
     - The value is the content of the kube config in base64 encoding. Ensure that the clusters, contexts, and users 
       sections contain the required data, and verify that current-context is not left empty.
-    > It is important that the k8s secrets are readable by the same service account, that is set in the [rm-api]
-    > (kubernetes/rm-api.yaml) deployment file.
+  
+    > It is important that the k8s secrets are readable by the same service account, that is set in the 
+    > [rm-api](kubernetes/rm-api.yaml) deployment file.
     
     The kube config must meet some specific requirements:
       1. The cluster array must contain only one cluster.
@@ -98,7 +100,7 @@ info:
     For the automatic metric scraping and the persistence of collected metric values 
     [VictoriaMetrics](https://victoriametrics.com/) is used. Because resources are deployed and terminated irregularly
     it is necessary to provide an interface to the monitoring system to let it know about the resources that have to be 
-    monitored (scrape targets). The listScrapeTargets operation implements a method to list all resources that are 
+    monitored (scrape targets). The *listScrapeTargets* operation implements a method to list all resources that are 
     ready to be scraped and it's route must be defined as 
     [http service discovery url](https://docs.victoriametrics.com/sd_configs/#http_sd_configs) in the monitoring 
     system's configuration.
@@ -142,33 +144,56 @@ info:
     downside that no external dependencies can be specified.
     - **services**: Service entities consist of a service type, name, the title of the docker image, the number of
     replicas for that service, the ports that should be exposed, the required cpu amount, the required memory amount
-    and the k8s service type. Currently *ClusterIP*, *NodePort*, *LoadBalancer*, *NoService* are supported k8s service 
+    and the k8s service type. Currently *ClusterIP*, *NodePort*, *LoadBalancer* and *NoService* are supported k8s 
+    service 
     types. If *NoService* is the selected service type no ports are allowed. The schema for ports to expose looks like
     this: 
     - ``containerPort:servicePort`` 
     
-    > e.g. your container exposes the port 80 and you want to expose it to service port 8080 you would have to provide 
+    > Example: your container exposes the port 80 and you want to expose it to service port 8080 you would have to 
+    provide 
     > it like this ``80:8080``
     
-    ## Deployment
-    Deployments consist of mappings of functions and services to resources and the necessary credentials. 
+    ## Deployments
+    Deployments consist of mappings of functions and services to resources, the necessary credentials and validation 
+    settings. 
     - **Credentials**: If a deployment to a cloud provider is part of the deploy resources request, credentials (access 
-      token, secret token, session token) must be stored to the account (see /credentials). This currently true for 
-      deployments of *AWS Lambda* and *Amazon EC2* resources. In addition if the request contains resources of
+      token, secret token, session token) must be stored to the account (see /credentials). This is currently true for 
+      deployments on *AWS Lambda* and *Amazon EC2* resources. Additionally, if the request contains resources of
       *Amazon EC2* or *OpenFaaS* resources, docker credentials to a registry that is reachable by all resources must 
-      also be included in the request. The reason for that is that OpenFaaS uses docker images which must first be 
+      also be included in this request. The reason for that is that OpenFaaS uses docker images which must first be 
       pushed to a docker repository and then pulled on the concerning resources. Make sure to generate a docker access
       token with read and write permissions for this purpose that can be invalidated after the deployment was
       successful.
+    - **Validation**: Users can choose whether they want to activate validation of a deployment's resources. If the 
+      required information is provided in the deployResources operation, validation is active. The settings consists of 
+      the id of an existing resource ensemble and the alert notification url. It is required, that all resources that
+      are part of the deployment are also part of the selected resource ensemble. The *alert_notification_url* is an 
+      HTTP-endpoint where alerts are sent to and must be provided by the client. 
+      The requirements for this endpoint are:
+      - accept post requests
+      - respond with empty body and status code 204
+      The structure of a notification consists of the type *slo-breach*, id of the concerning resource, name of the 
+      metric, observed value and timestamp of the event. 
+      ```
+      {
+        "type": "slo-breach",
+        "resource_id": <id-of-the-resource>,
+        "metric": <name-of-the-metric>,
+        "value": <current-value-of-the-metric>,
+        "timestamp": <timestamp-of-the-event>
+      }
+      ```
     
     - **Virtual Private Clouds**: In order to deploy virtual machines on *Amazon EC2* a Virtual Private Cloud (VPC) must
     be registered (see /vpcs) prior to submitting a deployment request for each region in which a virtual machine will
     be deployed. 
-    - **Locked Resources**: Deployments may lock lock resources by specifying them in the creation of the deployment.
+    - **Locked Resources**: Deployments may lock resources by specifying them in the creation of the deployment.
       This functionality is only supported for resources, where the *is_lockable* property is set to true. If a new 
       deployment attempts to lock a resource that is already locked by an active deployment, the request will not be 
       accepted, regardless of whether the new deployment intends to lock the resource or not. All resources that are
-      locked by a deployment stay in this state until the deployment is canceled all resources have been terminated.
+      locked by a deployment stay in this state until the deployment is cancelled and all resources have been 
+      terminated.
     - **Output and Status**: After successfully submitting a deploy resources request, a deployment will be created 
       with the status *NEW*. This indicates that the deployment of resources has started but is still in progress. 
       After the RM has completed all tasks associated with the new deployment, the status is changed to **DEPLOYED** 
@@ -185,16 +210,17 @@ info:
     
       For service deployments only the *rm_trigger_url* is set. Calling this trigger url starts up the 
       corresponding containers. Similar to the trigger url of function deployments, the trigger url for service 
-      deployments is also endpoint of the RM's API (/service-deployments/{resourceDeploymentId}/startup). It is 
-      also possible to stop the containers with the endpoint /service-deployments/{resourceDeploymentId}/terminate. 
+      deployments is a endpoint of the RM's API (/service-deployments/startup). It is 
+      also possible to stop the containers using this route (/service-deployments/terminate). Both operations support
+      the concurrent startup/termination of multiple services from the same deployment.
     
       When a deployment is cancelled, the status is changed to *TERMINATING*. After the termination of all the 
       resources associated with the deployment is finished, the status changes to *TERMINATED*. 
     
-    > If an error occurs in any of the deployments steps, the status is set to *ERROR*. In order to observe the 
+    > If an error occurs in any of the deployment steps, the status is set to *ERROR*. In order to observe the 
     > problem that occurred during the deployment and termination, it is possible to retrieve logs for each deployment 
     > using the /deployments/{id}/logs endpoint. The presence of an *ERROR* immediately terminates all resources that
-    > have been deployed before the error occurred and a new deployment has to be created.
+    > have been deployed before the error occurred and a new deployment has to be created by the user.
     
     ## Authentication
     The RM uses **Bearer tokens** for authentication because of it's simplicity. 
@@ -203,10 +229,11 @@ info:
     
     ### Roles
     Different routes require different roles. The property *x-role* defines the necessary role on the operation level.
-    If an operation does not define the *x-role* property it is accessible by every user.
+    If an operation does not define the *x-role* property it is accessible for every user.
     The available roles are:
     - admin
     - default
+    
     The default role is the basic role, which is assigned to every user by default. Accounts with the admin role have
     special permissions for user management.
     
@@ -218,7 +245,7 @@ info:
     Most routes of the API implement CRUD (Create, Read, Update, Delete) operations. For details, see the 
     routes and schemas below.
   license:
-    name: TODO
+    name: Apache License, Version 2.0
 
 servers:
   - url: localhost:8080/api
@@ -2280,7 +2307,7 @@ paths:
 
   /service-deployments/startup:
     post:
-      description: Start up a service container from an existing deployment.
+      description: Start up one or more service containers from an existing and active deployment.
       operationId: startServiceDeployment
       security:
         - bearerAuth: []
@@ -2380,7 +2407,7 @@ paths:
 
   /service-deployments/shutdown:
     post:
-      description: Shutdown a service container from an existing deployment
+      description: Shutdown one ore multiple service containers from an existing deployment
       operationId: shutdownServiceDeployment
       security:
         - bearerAuth: []
@@ -4528,7 +4555,7 @@ components:
         ignore_running_state_change:
           description: |
             Ignore that previously started startups or terminations are still in progress.
-            Use with caution. This field can only be set by users with the admin role.
+            Use with caution. This field can only be used by users with the admin role.
           default: false
           type: boolean
           example: true
