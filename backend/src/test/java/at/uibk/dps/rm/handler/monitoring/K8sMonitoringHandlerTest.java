@@ -171,12 +171,12 @@ public class K8sMonitoringHandlerTest {
     public void startMonitoringLoopNoMonitoringData(String latencyType, VertxTestContext testContext)
             throws InterruptedException, URISyntaxException {
         mockListSecrets(true, Map.of("resource1", "kubeconfig1"));
-        mockObserveK8sAPI(latencyType.equals("nobasepath") ? null : "localhost:0001", false);
+        mockObserveK8sAPI(latencyType.equals("nobasepath") ? null : "localhost:0001", latencyType.equals("nobasepath"));
         if (!latencyType.equals("nobasepath")) {
             mockLatencyMonitoring(latencyType.equals("up"));
         }
         mockPersistence(latencyType.equals("up"), latencyType.equals("nobasepath") ? null : "localhost:0001",
-            false);
+            latencyType.equals("nobasepath"));
 
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
@@ -197,7 +197,6 @@ public class K8sMonitoringHandlerTest {
             throws InterruptedException {
         mockListSecrets(true, Map.of("resource1", "kubeconfig1"));
         mockObserveK8sAPI(null, true);
-        mockPersistence(false, null, true);
 
         monitoringHandler.startMonitoringLoop();
         testContext.awaitCompletion(1, TimeUnit.SECONDS);
@@ -317,7 +316,9 @@ public class K8sMonitoringHandlerTest {
                 .thenReturn(Single.just(k8sMonitoringData));
         }
         when(k8sMetricPushService.composeAndPushMetrics(k8sMonitoringData)).thenReturn(Completable.complete());
-        when(namespaceService.updateAllClusterNamespaces("resource1",
-            isMonitoringException ? List.of() : List.of("default", "system"))).thenReturn(Completable.complete());
+        if (isUp) {
+            when(namespaceService.updateAllClusterNamespaces("resource1",
+                isMonitoringException ? List.of() : List.of("default", "system"))).thenReturn(Completable.complete());
+        }
     }
 }
