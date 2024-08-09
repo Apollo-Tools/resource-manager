@@ -46,6 +46,10 @@ public class MonitoringVerticle extends AbstractVerticle {
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, config, serviceProxyProvider,
             lambdaMonitoring, ec2PriceMonitoring));
         monitoringHandlers.add(new EnsembleValidationHandler(vertx, config, serviceProxyProvider));
+        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
+            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricService(),
+            serviceProxyProvider.getMetricQueryService());
+        monitoringHandlers.add(new EnsembleValidationHandler(vertx, config, ensembleHandler));
         monitoringHandlers.add(new K8sMonitoringHandler(vertx, config, serviceProxyProvider,
             new K8sMonitoringServiceImpl(), latencyMonitoringUtility));
         monitoringHandlers.add(new OpenFaasMonitoringHandler(vertx, config, serviceProxyProvider,

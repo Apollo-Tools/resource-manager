@@ -3,7 +3,6 @@ package at.uibk.dps.rm.handler.monitoring;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.handler.ensemble.EnsembleHandler;
-import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
@@ -19,16 +18,13 @@ public class EnsembleValidationHandler implements MonitoringHandler{
 
     private final ConfigDTO configDTO;
 
-    private final ServiceProxyProvider serviceProxyProvider;
+    private final EnsembleHandler ensembleHandler;
 
     private long currentTimer = -1L;
 
     @Override
     public void startMonitoringLoop() {
         long period = (long) (configDTO.getEnsembleValidationPeriod() * 60 * 1000);
-        EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
-            serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricService(),
-            serviceProxyProvider.getMetricQueryService());
         Handler<Long> monitoringHandler = id -> {
             logger.info("Started: validation of ensembles");
             ensembleHandler.validateAllExistingEnsembles()
