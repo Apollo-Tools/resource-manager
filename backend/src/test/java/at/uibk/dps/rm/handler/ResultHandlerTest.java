@@ -11,14 +11,17 @@ import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -210,69 +213,28 @@ public class ResultHandlerTest {
         testContext.completeNow();
     }
 
-    @Test
-    void handleRequestNotFound(VertxTestContext testContext) {
-        Throwable throwable = new NotFoundException();
-        Single<JsonObject> handler = Single.error(throwable);
-
-        resultHandler.handleFindOneRequest(rc, handler);
-
-        Mockito.verify(rc).fail(404, throwable);
-        testContext.completeNow();
+    public static Stream<Arguments> provideHandleRequestError() {
+        return Stream.of(
+            Arguments.of(new NotFoundException(), 404),
+            Arguments.of(new ForbiddenException("forbidden"), 403),
+            Arguments.of(new AlreadyExistsException(), 409),
+            Arguments.of(new UsedByOtherEntityException(), 409),
+            Arguments.of(new SerializationException(), 409),
+            Arguments.of(new ConflictException("conflict"), 409),
+            Arguments.of(new BadInputException(), 400),
+            Arguments.of(new UnauthorizedException(), 401),
+            Arguments.of(new UnknownError(), 500)
+        );
     }
 
-    @Test
-    void handleRequestAlreadyExists(VertxTestContext testContext) {
-        Throwable throwable = new AlreadyExistsException();
+    @ParameterizedTest
+    @MethodSource("provideHandleRequestError")
+    void handleRequestNotFound(Throwable throwable, int errorCode, VertxTestContext testContext) {
         Single<JsonObject> handler = Single.error(throwable);
 
         resultHandler.handleFindOneRequest(rc, handler);
 
-        Mockito.verify(rc).fail(409, throwable);
-        testContext.completeNow();
-    }
-
-    @Test
-    void handleRequestUsedByOtherEntity(VertxTestContext testContext) {
-        Throwable throwable = new UsedByOtherEntityException();
-        Single<JsonObject> handler = Single.error(throwable);
-
-        resultHandler.handleFindOneRequest(rc, handler);
-
-        Mockito.verify(rc).fail(409, throwable);
-        testContext.completeNow();
-    }
-
-    @Test
-    void handleSerializationError(VertxTestContext testContext) {
-        Throwable throwable = new SerializationException();
-        Single<JsonObject> handler = Single.error(throwable);
-
-        resultHandler.handleFindOneRequest(rc, handler);
-
-        Mockito.verify(rc).fail(409, throwable);
-        testContext.completeNow();
-    }
-
-    @Test
-    void handleRequestBadInput(VertxTestContext testContext) {
-        Throwable throwable = new BadInputException();
-        Single<JsonObject> handler = Single.error(throwable);
-
-        resultHandler.handleFindOneRequest(rc, handler);
-
-        Mockito.verify(rc).fail(400, throwable);
-        testContext.completeNow();
-    }
-
-    @Test
-    void handleUnauthorized(VertxTestContext testContext) {
-        Throwable throwable = new UnauthorizedException();
-        Single<JsonObject> handler = Single.error(throwable);
-
-        resultHandler.handleFindOneRequest(rc, handler);
-
-        Mockito.verify(rc).fail(401, throwable);
+        Mockito.verify(rc).fail(errorCode, throwable);
         testContext.completeNow();
     }
 
