@@ -4,9 +4,11 @@ import at.uibk.dps.rm.entity.deployment.DeploymentPath;
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Handler;
 import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.file.FileSystem;
@@ -40,7 +42,8 @@ public class FileCleanupHandler implements MonitoringHandler {
             fileSystem.readDir(configDTO.getBuildDirectory(), "^deployment_.*")
                 .flatMapObservable(Observable::fromIterable)
                 .map(entry -> {
-                    String deploymentId = entry.split("_")[1];
+                    String[] pathSections  = entry.split("_");
+                    String deploymentId = pathSections[pathSections.length -1];
                     try {
                         return Long.parseLong(deploymentId);
                     } catch (NumberFormatException e) {
@@ -50,6 +53,9 @@ public class FileCleanupHandler implements MonitoringHandler {
                 .toList()
                 .flatMap(deploymentIds -> {
                     logger.info("Active deployments: " + deploymentIds);
+                    if (deploymentIds.isEmpty()) {
+                        return Single.just(new JsonArray());
+                    }
                     return serviceProxyProvider.getDeploymentService().findAllWithErrorStateByIds(deploymentIds);
                 })
                 .flatMapObservable(Observable::fromIterable)
