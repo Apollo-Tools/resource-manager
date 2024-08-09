@@ -75,7 +75,7 @@ public class RegionMonitoringHandlerTest {
 
     @BeforeAll
     static void initAll() {
-        logCaptor = LogCaptor.forClass(RegionMonitoringHandler .class);
+        logCaptor = LogCaptor.forClass(RegionMonitoringHandler.class);
     }
 
     @AfterAll

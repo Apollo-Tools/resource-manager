@@ -41,6 +41,7 @@ public class TestConfigProvider {
         configDTO.setOpenfaasMonitoringPeriod(300.0);
         configDTO.setRegionMonitoringPeriod(300.0);
         configDTO.setAwsPriceMonitoringPeriod(300.0);
+        configDTO.setFileCleanupPeriod(604800.0);
         return configDTO;
     }
 }
