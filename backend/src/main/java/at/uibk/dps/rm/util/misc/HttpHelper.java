@@ -8,6 +8,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 /**
  * This class is a utility class for http requests.
+ *
+ * @author matthi-g
  */
 @UtilityClass
 public class HttpHelper {
