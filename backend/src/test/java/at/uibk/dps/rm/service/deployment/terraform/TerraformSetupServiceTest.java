@@ -54,7 +54,7 @@ public class TerraformSetupServiceTest {
                     .subscribe(result -> testContext.verify(() -> {
                             assertThat(ignoredRFFS.constructed().size()).isEqualTo(1);
                             assertThat(ignoredCPFS.constructed().size()).isEqualTo(1);
-                            assertThat(ignoredCDFS.constructed().size()).isEqualTo(2);
+                            assertThat(ignoredCDFS.constructed().size()).isEqualTo(1);
                             assertThat(result.size()).isEqualTo(3);
                             assertThat(result.get(0).getModuleName()).isEqualTo("aws_us_east_1");
                             assertThat(result.get(1).getModuleName()).isEqualTo("service_prepull");

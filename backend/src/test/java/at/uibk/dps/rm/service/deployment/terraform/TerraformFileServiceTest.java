@@ -21,6 +21,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 /**
@@ -42,12 +43,25 @@ public class TerraformFileServiceTest {
         MainFileService service = TestFileServiceProvider.createMainFileService(fileSystem, List.of(m1));
         Path rootFolder = Path.of("temp", "test");
         when(fileSystem.mkdirs(rootFolder.toString())).thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "main.tf").toString()), any()))
-            .thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "variables.tf").toString()), any()))
-            .thenReturn(Completable.complete());
-        when(fileSystem.writeFile(eq(Path.of(rootFolder.toString(), "outputs.tf").toString()), any()))
-            .thenReturn(Completable.complete());
+        doReturn(Completable.complete())
+            .when(fileSystem).writeFile(eq(Path.of(rootFolder.toString(), "main.tf").toString()), any());
+        doReturn(Completable.complete())
+            .when(fileSystem).writeFile(eq(Path.of(rootFolder.toString(), "variables.tf").toString()), any());
+        doReturn(Completable.complete())
+            .when(fileSystem).writeFile(eq(Path.of(rootFolder.toString(), "outputs.tf").toString()), any());
+
+        service.setUpDirectory()
+            .blockingSubscribe(() -> {},
+            throwable -> testContext.verify(() -> fail("method has thrown exception"))
+        );
+        testContext.completeNow();
+    }
+
+    @Test
+    void setupDirectoryEmpty(VertxTestContext testContext) {
+        Path rootFolder = Path.of("temp", "test");
+        EmptyFileService service = new EmptyFileService(fileSystem, rootFolder);
+        when(fileSystem.mkdirs(rootFolder.toString())).thenReturn(Completable.complete());
 
         service.setUpDirectory()
             .blockingSubscribe(() -> {},
@@ -66,5 +80,32 @@ public class TerraformFileServiceTest {
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );
         testContext.completeNow();
+    }
+
+    private static class EmptyFileService extends TerraformFileService {
+
+        public EmptyFileService(FileSystem fileSystem, Path rootFolder) {
+            super(fileSystem, rootFolder);
+        }
+
+        @Override
+        protected String getProviderString() {
+            return "";
+        }
+
+        @Override
+        protected String getMainFileContent() {
+            return "";
+        }
+
+        @Override
+        protected String getVariablesFileContent() {
+            return "";
+        }
+
+        @Override
+        protected String getOutputsFileContent() {
+            return "";
+        }
     }
 }

@@ -159,15 +159,15 @@ public class DeploymentServiceImplTest {
 
     @Test
     void findAllByAccountId(VertxTestContext testContext) {
+        deployment.setFunctionDeployments(List.of(fd1, fd2));
+        deployment.setServiceDeployments(List.of(sd1, sd2));
         Deployment d2 = TestDeploymentProvider.createDeployment(2L, account);
+        d2.setFunctionDeployments(List.of(fd1));
+        d2.setServiceDeployments(List.of(sd1, sd2));
 
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(repositoryMock.getDeploymentRepository().findAllByAccountId(sessionManager, accountId))
             .thenReturn(Single.just(List.of(deployment, d2)));
-        when(repositoryMock.getResourceDeploymentRepository().findAllByDeploymentIdAndFetch(sessionManager, 1L))
-            .thenReturn(Single.just(List.of(fd1, sd1, sd2)));
-        when(repositoryMock.getResourceDeploymentRepository().findAllByDeploymentIdAndFetch(sessionManager, 2L))
-            .thenReturn(Single.just(List.of(fd2)));
 
         deploymentService.findAllByAccountId(accountId, testContext.succeeding(result -> testContext.verify(() -> {
                 assertThat(result.size()).isEqualTo(2);
@@ -177,6 +177,8 @@ public class DeploymentServiceImplTest {
                 assertThat(result.getJsonObject(1).getString("status_value")).isEqualTo("TERMINATING");
                 testContext.completeNow();
             })));
+        deployment.setFunctionDeployments(List.of());
+        deployment.setServiceDeployments(List.of());
     }
 
     @Test
