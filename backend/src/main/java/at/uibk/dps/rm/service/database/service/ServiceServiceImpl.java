@@ -56,7 +56,7 @@ public class ServiceServiceImpl extends DatabaseServiceProxy<Service> implements
 
     @Override
     public void findOneByIdAndAccountId(long id, long accountId, Handler<AsyncResult<JsonObject>> resultHandler) {
-        Single<Service> findOne = smProvider.withTransactionSingle( sm -> repository
+        Single<Service> findOne = smProvider.withTransactionSingle(sm -> repository
             .findByIdAndAccountId(sm, id, accountId, true)
             .switchIfEmpty(Single.error(new NotFoundException(Service.class)))
             .flatMap(result -> sm.fetch(result.getEnvVars())

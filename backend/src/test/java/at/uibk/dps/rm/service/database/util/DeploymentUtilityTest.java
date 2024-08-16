@@ -46,7 +46,6 @@ public class DeploymentUtilityTest {
     private Deployment deployment;
     private FunctionDeployment fd1, fd2;
     private ServiceDeployment sd1, sd2;
-    private ResourceDeployment rd1, rd2;
 
     @BeforeEach
     void initTest() {
@@ -63,8 +62,6 @@ public class DeploymentUtilityTest {
         fd2 = TestFunctionProvider.createFunctionDeployment(2L, r1, deployment, rdsTerminating);
         sd1 = TestServiceProvider.createServiceDeployment(3L, r2, deployment, rdsDeployed);
         sd2 = TestServiceProvider.createServiceDeployment(4L, r2, deployment, rdsTerminating);
-        rd1 = TestDeploymentProvider.createResourceDeployment(1L, deployment);
-        rd2 = TestDeploymentProvider.createResourceDeployment(2L, deployment);
     }
 
     @ParameterizedTest
@@ -94,13 +91,11 @@ public class DeploymentUtilityTest {
                 status = DeploymentStatusValue.ERROR;
                 break;
         }
-        List<ResourceDeployment> resourceDeployments = List.of(rd1, rd2);
-        when(repositoryMock.getResourceDeploymentRepository()
-            .findAllByDeploymentIdAndFetch(sessionManager, deploymentId)).thenReturn(Single.just(resourceDeployments));
+        when(deploymentSpy.getFunctionDeployments()).thenReturn(List.of(fd1, fd2));
         when(deploymentSpy.getCreatedAt()).thenReturn(new Timestamp(1692667639304L));
 
         try(MockedStatic<DeploymentStatusUtility> mock = Mockito.mockStatic(DeploymentStatusUtility.class)) {
-            mock.when(() -> DeploymentStatusUtility.checkCrucialResourceDeploymentStatus(resourceDeployments))
+            mock.when(() -> DeploymentStatusUtility.checkCrucialResourceDeploymentStatus(List.of(fd1, fd2)))
                 .thenReturn(status);
             utility.composeDeploymentResponse(deploymentSpy)
                 .subscribe(result -> testContext.verify(() -> {

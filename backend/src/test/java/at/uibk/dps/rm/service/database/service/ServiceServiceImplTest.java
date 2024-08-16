@@ -112,9 +112,10 @@ public class ServiceServiceImplTest {
 
     @Test
     void findOneByIdAndAccountId(VertxTestContext testContext) {
-        SessionMockHelper.mockMaybe(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(serviceRepository.findByIdAndAccountId(sessionManager, serviceId, accountId, true))
             .thenReturn(Maybe.just(s1));
+        doReturn(Single.just(List.of())).when(sessionManager).fetch(any());
 
         service.findOneByIdAndAccountId(serviceId, accountId,
             testContext.succeeding(result -> testContext.verify(() -> {
@@ -125,7 +126,7 @@ public class ServiceServiceImplTest {
 
     @Test
     void findOneByIdAndAccountIdNotFound(VertxTestContext testContext) {
-        SessionMockHelper.mockMaybe(smProvider, sessionManager);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(serviceRepository.findByIdAndAccountId(sessionManager, serviceId, accountId, true))
             .thenReturn(Maybe.empty());
 

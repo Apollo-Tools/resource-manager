@@ -105,6 +105,6 @@ public class ServiceDeployFileServiceTest {
             "    service: module.deployment_1.service_info\n" +
             "    pods: module.deployment_1.pods_info\n" +
             "  }\n" +
-            "}");
+            "}\n");
     }
 }
