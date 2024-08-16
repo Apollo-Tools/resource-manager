@@ -4,12 +4,12 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.repository.Repository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
+import at.uibk.dps.rm.util.misc.DateHelper;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import org.hibernate.reactive.stage.Stage;
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.CompletionStage;
 
@@ -101,8 +101,6 @@ public class DeploymentRepository extends Repository<Deployment> {
      * @return a Single that emits the deployments
      */
     public Single<List<Deployment>> findAllWithErrorStateByIds(SessionManager sessionManager, List<Long> ids) {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, -15);
         return Single.fromCompletionStage(sessionManager.getSession()
             .createQuery("select distinct d from Deployment d " +
                 "left join d.functionDeployments fd " +
@@ -114,7 +112,7 @@ public class DeploymentRepository extends Repository<Deployment> {
                     "(sd.updatedAt < :lastUpdate and sd.status.statusValue=:errorStatus))",
                 entityClass)
             .setParameter("ids", ids)
-            .setParameter("lastUpdate", cal.getTime())
+            .setParameter("lastUpdate", DateHelper.getDate(-15))
             .setParameter("errorStatus", DeploymentStatusValue.ERROR.getValue())
             .getResultList());
     }
