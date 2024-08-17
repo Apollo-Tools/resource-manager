@@ -89,6 +89,16 @@ public class DatabaseUtilMockprovider {
                 .willReturn(Single.just(result)));
     }
 
+    public static MockedConstruction<DeploymentValidationUtility> mockDeploymentValidationUtilityValid(
+            SessionManager sm, List<Resource> result, long accountId) {
+        return Mockito.mockConstruction(DeploymentValidationUtility.class, (mock, context) -> {
+            given(mock.checkDeploymentIsValid(eq(sm), any(DeployResourcesRequest.class), any(DeployResourcesDTO.class)))
+                .willReturn(Single.just(result));
+            given(mock.checkEnsembleResourcesForAlerting(eq(sm), any(DeployResourcesRequest.class),
+                any(Deployment.class), eq(accountId))).willReturn(Single.just(1L));
+        });
+    }
+
     public static MockedConstruction<SaveResourceDeploymentUtility> mockSaveResourceDeploymentUtility(
         SessionManager sm, ResourceDeploymentStatus status, List<K8sNamespace> namespaces,
         List<Resource> resources) {
