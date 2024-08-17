@@ -47,7 +47,7 @@ public class TriggerUrlUtilityTest {
 
     @BeforeEach
     void initTest() {
-        repositoryMock.mock();
+        repositoryMock.mockRepositories();
         sessionManager = new SessionManager(session);
         utility = new TriggerUrlUtility(repositoryMock.getRepositoryProvider());
     }

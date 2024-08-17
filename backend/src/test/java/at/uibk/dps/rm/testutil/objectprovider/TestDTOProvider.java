@@ -306,4 +306,11 @@ public class TestDTOProvider {
         request.setIgnoreRunningStateChange(ignoreRunningStateChange);
         return request;
     }
+
+    public static DeploymentValidation createDeploymentValidation(long ensembleId) {
+        DeploymentValidation deploymentValidation = new DeploymentValidation();
+        deploymentValidation.setEnsembleId(ensembleId);
+        deploymentValidation.setAlertNotificationUrl("localhost:8990/alertme");
+        return deploymentValidation;
+    }
 }

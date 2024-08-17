@@ -64,7 +64,7 @@ public class DeploymentValidationUtilityTest {
 
     @BeforeEach
     void initTest() {
-        repositoryMock.mock();
+        repositoryMock.mockRepositories();
         utility = new DeploymentValidationUtility(accountId,
             repositoryMock.getRepositoryProvider());
         lambda = TestPlatformProvider.createPlatformFaas(1L, PlatformEnum.LAMBDA.getValue());

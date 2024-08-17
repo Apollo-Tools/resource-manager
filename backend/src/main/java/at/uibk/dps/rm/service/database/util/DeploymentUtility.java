@@ -1,8 +1,7 @@
 package at.uibk.dps.rm.service.database.util;
 
 import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
-import at.uibk.dps.rm.entity.dto.deployment.DeployTerminateDTO;
-import at.uibk.dps.rm.entity.dto.deployment.DeploymentResponse;
+import at.uibk.dps.rm.entity.dto.deployment.*;
 import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ResourceDeployment;
 import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;

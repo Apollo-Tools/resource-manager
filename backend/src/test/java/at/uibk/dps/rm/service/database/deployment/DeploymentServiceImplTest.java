@@ -4,8 +4,10 @@ import at.uibk.dps.rm.entity.deployment.DeploymentStatusValue;
 import at.uibk.dps.rm.entity.deployment.output.DeploymentOutput;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentValidation;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.exception.BadInputException;
+import at.uibk.dps.rm.exception.ConflictException;
 import at.uibk.dps.rm.exception.NotFoundException;
 import at.uibk.dps.rm.exception.UnauthorizedException;
 import at.uibk.dps.rm.service.database.util.*;
@@ -17,13 +19,16 @@ import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.hibernate.reactive.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -55,6 +60,9 @@ public class DeploymentServiceImplTest {
     @Mock
     private SessionManager sessionManager;
 
+    @Mock
+    private Stage.Session session;
+
     private long accountId, deploymentId;
     private Account account;
     private Deployment deployment;
@@ -64,16 +72,18 @@ public class DeploymentServiceImplTest {
     private ServiceDeployment sd1, sd2;
     private ResourceDeploymentStatus rdsNew;
     private K8sNamespace n1;
+    private Ensemble e1;
 
     @BeforeEach
     void initTest() {
         JsonMapperConfig.configJsonMapper();
-        repositoryMock.mock();
+        repositoryMock.mockRepositories();
         deploymentService = new DeploymentServiceImpl(repositoryMock.getRepositoryProvider(), smProvider);
         deploymentId = 1L;
         accountId = 2L;
         account = TestAccountProvider.createAccount(accountId);
-        deployment = TestDeploymentProvider.createDeployment(deploymentId, account);
+        e1 = TestEnsembleProvider.createEnsemble(1L, accountId);
+        deployment = TestDeploymentProvider.createDeployment(deploymentId, account, e1);
         r1 = TestResourceProvider.createResourceLambda(1L);
         r2 = TestResourceProvider.createResourceContainer(2L, "localhost", true);
         c1 = TestAccountProvider.createCredentials(1L,
@@ -141,7 +151,8 @@ public class DeploymentServiceImplTest {
                 assertThat(throwable).isInstanceOf(BadInputException.class);
                 assertThat(throwable.getMessage()).isEqualTo("invalid deployment state");
                 testContext.completeNow();
-            })));
+            }))
+        );
     }
 
     @Test
@@ -154,7 +165,8 @@ public class DeploymentServiceImplTest {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 assertThat(throwable.getMessage()).isEqualTo("Deployment not found");
                 testContext.completeNow();
-            })));
+            }))
+        );
     }
 
     @Test
@@ -176,9 +188,55 @@ public class DeploymentServiceImplTest {
                 assertThat(result.getJsonObject(1).getLong("deployment_id")).isEqualTo(2L);
                 assertThat(result.getJsonObject(1).getString("status_value")).isEqualTo("TERMINATING");
                 testContext.completeNow();
-            })));
-        deployment.setFunctionDeployments(List.of());
-        deployment.setServiceDeployments(List.of());
+            }))
+        );
+    }
+
+    @Test
+    void findAllActiveWithAlerting(VertxTestContext testContext) {
+        Ensemble e2 = TestEnsembleProvider.createEnsemble(2L, accountId);
+        Deployment d2 = TestDeploymentProvider.createDeployment(2L, account, e2);
+        d2.setAlertNotificationUrl("localhost:8990/alertme");
+        EnsembleSLO eslo1 = TestEnsembleProvider.createEnsembleSLOGT(1L, "memory", e1, 1000_000);
+        EnsembleSLO eslo2 = TestEnsembleProvider.createEnsembleSLOGT(1L, "cpu", e1, 4);
+        SubResource sr1 = TestResourceProvider.createSubResource(5L, "node1", (MainResource) r2);
+        sr1.setLockedByDeployment(d2);
+
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findAllActiveWithAlerting(sessionManager))
+            .thenReturn(Single.just(List.of(deployment, d2)));
+        when(smProvider.openSession()).thenReturn(Single.just(session));
+        doReturn(Single.just(List.of())).when(repositoryMock.getEnsembleSLORepository())
+            .findAllByEnsembleId(argThat((SessionManager sm) -> sm.getSession().equals(session)), eq(1L));
+        doReturn(Single.just(List.of(eslo1, eslo2))).when(repositoryMock.getEnsembleSLORepository())
+            .findAllByEnsembleId(argThat((SessionManager sm) -> sm.getSession().equals(session)), eq(2L));
+        when(repositoryMock.getResourceRepository()
+            .findAllByDeploymentId(argThat((SessionManager sm) -> sm.getSession().equals(session)), eq(2L)))
+            .thenReturn(Single.just(List.of(r1, sr1)));
+
+        when(smProvider.closeSession(session)).thenReturn(Completable.complete());
+
+        deploymentService.findAllActiveWithAlerting(testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(1);
+                JsonObject deploymentDto = result.getJsonObject(0);
+                assertThat(deploymentDto.getLong("deployment_id")).isEqualTo(2L);
+                assertThat(deploymentDto.getLong("ensemble_id")).isEqualTo(2L);
+                assertThat(deploymentDto.getString("alerting_url")).isEqualTo("localhost:8990/alertme");
+                JsonArray resources = deploymentDto.getJsonArray("resources");
+                assertThat(resources.size()).isEqualTo(2);
+                assertThat(resources.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(resources.getJsonObject(0).getBoolean("is_locked")).isEqualTo(false);
+                assertThat(resources.getJsonObject(0).containsKey("sub_resources")).isEqualTo(true);
+                assertThat(resources.getJsonObject(1).getLong("resource_id")).isEqualTo(5L);
+                assertThat(resources.getJsonObject(1).getBoolean("is_locked")).isEqualTo(true);
+                assertThat(resources.getJsonObject(1).containsKey("main_resource_id")).isEqualTo(true);
+                JsonArray ensembleSLOs = deploymentDto.getJsonArray("ensemble_slos");
+                assertThat(ensembleSLOs.size()).isEqualTo(2);
+                assertThat(ensembleSLOs.getJsonObject(0).getString("name")).isEqualTo("memory");
+                assertThat(ensembleSLOs.getJsonObject(1).getString("name")).isEqualTo("cpu");
+                testContext.completeNow();
+            }))
+        );
     }
 
     @Test
@@ -202,7 +260,8 @@ public class DeploymentServiceImplTest {
                 assertThat(result.getLong("created_at")).isEqualTo(1692667639304L);
                 assertThat(result.getLong("finished_at")).isEqualTo(1692667639999L);
                 testContext.completeNow();
-            })));
+            }))
+        );
     }
 
     @Test
@@ -214,12 +273,119 @@ public class DeploymentServiceImplTest {
         deploymentService.findOneByIdAndAccountId(deploymentId, accountId, testContext.failing(throwable -> testContext.verify(() -> {
                 assertThat(throwable).isInstanceOf(NotFoundException.class);
                 testContext.completeNow();
-            })));
+            }))
+        );
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true, false",
+        "true, true",
+        "false, false"
+    })
+    void findOneForServiceOperationByIdAndAccountId(boolean ignoreStateChange, boolean currentStateChange,
+            VertxTestContext testContext) {
+        deployment.setServiceStateChangeInProgress(currentStateChange);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
+            .thenReturn(Maybe.just(deployment));
+
+        deploymentService.findOneForServiceOperationByIdAndAccountId(deploymentId, accountId, ignoreStateChange,
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.getLong("deployment_id")).isEqualTo(1L);
+                assertThat(result.getBoolean("service_state_change_in_progress")).isEqualTo(true);
+                testContext.completeNow();
+            }))
+        );
     }
 
     @Test
-    void saveToAccount(VertxTestContext testContext) {
+    void findOneForServiceOperationByIdAndAccountIdConflict(VertxTestContext testContext) {
+        deployment.setServiceStateChangeInProgress(true);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
+            .thenReturn(Maybe.just(deployment));
+
+        deploymentService.findOneForServiceOperationByIdAndAccountId(deploymentId, accountId, false,
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(ConflictException.class);
+                assertThat(throwable.getMessage()).isEqualTo("Startup or shutdown operation is already in " +
+                    "progress. Try again later.");
+                testContext.completeNow();
+            }))
+        );
+    }
+
+    @Test
+    void findOneForServiceOperationByIdAndAccountIdNotFound(VertxTestContext testContext) {
+        deployment.setServiceStateChangeInProgress(true);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, deploymentId, accountId))
+            .thenReturn(Maybe.empty());
+
+        deploymentService.findOneForServiceOperationByIdAndAccountId(deploymentId, accountId, false,
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                testContext.completeNow();
+            }))
+        );
+    }
+
+    @Test
+    void findAllWithErrorStateByIds(VertxTestContext testContext) {
+        Deployment d2 = TestDeploymentProvider.createDeployment(2L, account);
+
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findAllWithErrorStateByIds(sessionManager, List.of(1L, 2L, 3L)))
+            .thenReturn(Single.just(List.of(deployment, d2)));
+
+        deploymentService.findAllWithErrorStateByIds(List.of(1L, 2L, 3L),
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("deployment_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("deployment_id")).isEqualTo(2L);
+                testContext.completeNow();
+            }))
+        );
+    }
+
+    @Test
+    void finishServiceOperation(VertxTestContext testContext) {
+        deployment.setServiceStateChangeInProgress(true);
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, 1L, accountId))
+            .thenReturn(Maybe.just(deployment));
+
+        deploymentService.finishServiceOperation(1L, accountId,
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(deployment.getServiceStateChangeInProgress()).isEqualTo(false);
+                testContext.completeNow();
+            }))
+        );
+    }
+
+    @Test
+    void finishServiceOperationNotFound(VertxTestContext testContext) {
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(repositoryMock.getDeploymentRepository().findByIdAndAccountId(sessionManager, 1L, accountId))
+            .thenReturn(Maybe.empty());
+
+        deploymentService.finishServiceOperation(1L, accountId,
+            testContext.failing(throwable -> testContext.verify(() -> {
+                assertThat(throwable).isInstanceOf(NotFoundException.class);
+                testContext.completeNow();
+            }))
+        );
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void saveToAccount(boolean alertingEnabled, VertxTestContext testContext) {
         DeployResourcesRequest request = TestRequestProvider.createDeployResourcesRequest();
+        if (alertingEnabled) {
+            DeploymentValidation deploymentValidation = TestDTOProvider.createDeploymentValidation(1L);
+            request.setValidation(deploymentValidation);
+        }
         SessionMockHelper.mockSingle(smProvider, sessionManager);
         when(sessionManager.find(Account.class, accountId)).thenReturn(Maybe.just(account));
         when(sessionManager.persist(argThat((Deployment depl) ->
@@ -233,7 +399,8 @@ public class DeploymentServiceImplTest {
             .thenReturn(Single.just(List.of(n1)));
 
         try(MockedConstruction<DeploymentValidationUtility> ignoreValidation =
-                    DatabaseUtilMockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2));
+                    DatabaseUtilMockprovider.mockDeploymentValidationUtilityValid(sessionManager, List.of(r1, r2),
+                        accountId);
             MockedConstruction<SaveResourceDeploymentUtility> ignoreSave = DatabaseUtilMockprovider
                     .mockSaveResourceDeploymentUtility(sessionManager, rdsNew, List.of(n1), List.of(r1, r2));
             MockedConstruction<DeploymentUtility> ignoreDeployment = DatabaseUtilMockprovider
@@ -248,7 +415,8 @@ public class DeploymentServiceImplTest {
                     assertThat(resultDTO.getCredentialsList()).isEqualTo(List.of(c1));
                     assertThat(resultDTO.getDeploymentCredentials().getDockerCredentials()).isEqualTo(TestDTOProvider.createDockerCredentials());
                     testContext.completeNow();
-                })));
+                }))
+            );
         }
     }
 
@@ -266,7 +434,8 @@ public class DeploymentServiceImplTest {
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(NotFoundException.class);
                     testContext.completeNow();
-                })));
+                }))
+            );
         }
     }
 
@@ -282,7 +451,8 @@ public class DeploymentServiceImplTest {
                 testContext.failing(throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(UnauthorizedException.class);
                     testContext.completeNow();
-                })));
+                }))
+            );
         }
     }
 
@@ -328,6 +498,23 @@ public class DeploymentServiceImplTest {
 
         try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
             deploymentService.handleDeploymentSuccessful(JsonObject.mapFrom(deploymentOutput), deployResourcesDTO,
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        }
+    }
+
+    @Test
+    void handleDeploymentSuccessfulEmptyTerraformOutput(VertxTestContext testContext) {
+        DeployResourcesDTO deployResourcesDTO = TestRequestProvider.createDeployRequest();
+
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        when(repositoryMock.getResourceDeploymentRepository().updateDeploymentStatusByDeploymentId(sessionManager,
+            deploymentId, DeploymentStatusValue.DEPLOYED)).thenReturn(Completable.complete());
+        when(repositoryMock.getDeploymentRepository().setDeploymentFinishedTime(sessionManager, deploymentId))
+            .thenReturn(Completable.complete());
+        when(sessionManager.flush()).thenReturn(Completable.complete());
+
+        try(MockedConstruction<TriggerUrlUtility> ignored = DatabaseUtilMockprovider.mockTriggerUrlUtility(sessionManager)) {
+            deploymentService.handleDeploymentSuccessful(new JsonObject(), deployResourcesDTO,
                 testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
         }
     }

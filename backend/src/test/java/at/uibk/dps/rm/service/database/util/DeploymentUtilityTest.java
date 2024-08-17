@@ -49,7 +49,7 @@ public class DeploymentUtilityTest {
 
     @BeforeEach
     void initTest() {
-        repositoryMock.mock();
+        repositoryMock.mockRepositories();
         utility = new DeploymentUtility(repositoryMock.getRepositoryProvider());
         deploymentId = 1L;
         Account account = TestAccountProvider.createAccount(2L);
