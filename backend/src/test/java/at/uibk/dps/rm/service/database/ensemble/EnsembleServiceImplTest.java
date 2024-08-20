@@ -17,6 +17,7 @@ import at.uibk.dps.rm.testutil.objectprovider.TestResourceProvider;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -55,7 +56,7 @@ public class EnsembleServiceImplTest {
     private long accountId;
     private Account account;
     private Ensemble e1, e2;
-    private Resource r1, r2;
+    private Resource r1;
     private ResourceEnsembleStatus res1Valid, res1Invalid, res2Invalid;
 
     @BeforeEach
@@ -68,7 +69,7 @@ public class EnsembleServiceImplTest {
         e1 = TestEnsembleProvider.createEnsemble(1L, accountId);
         e2 = TestEnsembleProvider.createEnsemble(2L, accountId);
         r1 = TestResourceProvider.createResource(3L);
-        r2 = TestResourceProvider.createResource(4L);
+        Resource r2 = TestResourceProvider.createResource(4L);
         res1Valid = new ResourceEnsembleStatus(r1.getResourceId(), true);
         res1Invalid = new ResourceEnsembleStatus(r1.getResourceId(), false);
         res2Invalid = new ResourceEnsembleStatus(r2.getResourceId(), false);
@@ -253,6 +254,31 @@ public class EnsembleServiceImplTest {
                 assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
                 testContext.completeNow();
             })));
+    }
+
+    @Test
+    void updateEnsembleStatus(VertxTestContext testContext) {
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        JsonObject sv1 = JsonObject.mapFrom(res1Valid);
+        JsonObject sv2 = JsonObject.mapFrom(res2Invalid);
+        try (MockedConstruction<EnsembleValidationUtility> ignored = DatabaseUtilMockprovider.mockEnsembleValidationUtility(
+            sessionManager, e1.getEnsembleId(), List.of(res1Valid, res2Invalid))) {
+            ensembleService.updateEnsembleStatus(e1.getEnsembleId(), new JsonArray(List.of(sv1, sv2)),
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        }
+    }
+
+    @Test
+    void updateEnsembleStatusMap(VertxTestContext testContext) {
+        SessionMockHelper.mockCompletable(smProvider, sessionManager);
+        JsonObject sv1 = JsonObject.mapFrom(res1Valid);
+        JsonObject sv2 = JsonObject.mapFrom(res2Invalid);
+        try (MockedConstruction<EnsembleValidationUtility> ignored = DatabaseUtilMockprovider.mockEnsembleValidationUtility(
+            sessionManager, e1.getEnsembleId(), List.of(res1Valid, res2Invalid))) {
+            ensembleService.updateEnsembleStatusMap(Map.of(String.valueOf(e1.getEnsembleId()),
+                    new JsonArray(List.of(sv1, sv2))),
+                testContext.succeeding(result -> testContext.verify(testContext::completeNow)));
+        }
     }
 
     @Test
