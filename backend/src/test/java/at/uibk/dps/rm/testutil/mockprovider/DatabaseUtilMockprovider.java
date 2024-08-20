@@ -76,6 +76,12 @@ public class DatabaseUtilMockprovider {
                 .willReturn(Single.just(value))));
     }
 
+    public static MockedConstruction<EnsembleValidationUtility> mockEnsembleValidationUtility(SessionManager sm,
+            long ensembleId, List<ResourceEnsembleStatus> statusValues) {
+        return Mockito.mockConstruction(EnsembleValidationUtility.class, (mock, context) ->
+            given(mock.updateResourceEnsembleStatuses(sm, ensembleId, statusValues)).willReturn(Completable.complete()));
+    }
+
     public static MockedConstruction<DeploymentUtility> mockDeploymentUtility(SessionManager sm) {
         return Mockito.mockConstruction(DeploymentUtility.class, (mock, context) ->
             given(mock.mapResourceDeploymentsToDTO(eq(sm), any(DeployTerminateDTO.class)))

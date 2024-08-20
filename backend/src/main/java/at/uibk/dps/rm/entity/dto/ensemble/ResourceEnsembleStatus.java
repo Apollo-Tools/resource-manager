@@ -30,4 +30,22 @@ public class ResourceEnsembleStatus {
 
     @JsonProperty("is_valid")
     private final boolean isValid;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ResourceEnsembleStatus that = (ResourceEnsembleStatus) o;
+
+        if (resourceId != that.resourceId) return false;
+        return isValid == that.isValid;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (resourceId ^ (resourceId >>> 32));
+        result = 31 * result + (isValid ? 1 : 0);
+        return result;
+    }
 }
