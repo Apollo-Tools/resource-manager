@@ -1,6 +1,7 @@
 package at.uibk.dps.rm.verticle;
 
 import at.uibk.dps.rm.entity.dto.config.ConfigDTO;
+import at.uibk.dps.rm.handler.ensemble.EnsembleHandler;
 import at.uibk.dps.rm.handler.monitoring.*;
 import at.uibk.dps.rm.service.ServiceProxyBinder;
 import at.uibk.dps.rm.service.ServiceProxyProvider;
@@ -45,7 +46,6 @@ public class MonitoringVerticle extends AbstractVerticle {
         LatencyMonitoringUtility latencyMonitoringUtility = new LatencyMonitoringUtility();
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, config, serviceProxyProvider,
             lambdaMonitoring, ec2PriceMonitoring));
-        monitoringHandlers.add(new EnsembleValidationHandler(vertx, config, serviceProxyProvider));
         EnsembleHandler ensembleHandler = new EnsembleHandler(serviceProxyProvider.getEnsembleService(),
             serviceProxyProvider.getResourceService(), serviceProxyProvider.getMetricService(),
             serviceProxyProvider.getMetricQueryService());
