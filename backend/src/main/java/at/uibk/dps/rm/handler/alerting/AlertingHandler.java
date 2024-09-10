@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 /**
  * The alerting handler validates active deployments against their specified service level
- * objectives and notifies their clients in case of an SLO-Breach.
+ * objectives and notifies their clients in case of an SLO violation.
  *
  * @author matthi-g
  */
@@ -67,7 +67,7 @@ public class AlertingHandler {
                     .flatMapObservable(Observable::fromIterable)
                     .flatMap(resource -> Observable.fromIterable(resource.getMonitoredMetricValues())
                         .map(monitoredMetricValue ->
-                            new AlertMessage(AlertType.SLO_BREACH, resource.getResourceId(), monitoredMetricValue)
+                            new AlertMessage(AlertType.SLO_VIOLATION, resource.getResourceId(), monitoredMetricValue)
                         )
                     )
                     .map(alertMessage -> {

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Represents the typ of alerting messages. Currently only SLO-Breach is implemented.
+ * Represents the typ of alerting messages. Currently only SLO_VIOLATION is implemented.
  *
  * @author matthi-g
  */
@@ -13,7 +13,7 @@ import lombok.Getter;
 @Getter
 public enum AlertType {
 
-    SLO_BREACH("slo-breach");
+    SLO_VIOLATION("slo-violation");
 
     private final String value;
 }

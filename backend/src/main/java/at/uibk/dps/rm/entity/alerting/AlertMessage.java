@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
- * Represents a message that is sent to the client. Currently only alerts of type SLO-Breach
- * are implemented. These messages are sent, if the alerting handler observes and SLO-Breach for
+ * Represents a message that is sent to the client. Currently only alerts of type SLO_VIOLATION
+ * are implemented. These messages are sent, if the alerting handler observes and SLO_VIOLATION for
  * an active deployment.
  *
  * @author matthi-g
@@ -30,7 +30,7 @@ public class AlertMessage {
      *
      * @param type the type of the alert
      * @param resourceId the id of the affected resource
-     * @param metricValue the observed metric value that is responsible for the SLO-Breach
+     * @param metricValue the observed metric value that is responsible for the SLO_VIOLATION
      */
     public AlertMessage(AlertType type, long resourceId, MonitoredMetricValue metricValue) {
         this.type = type;
