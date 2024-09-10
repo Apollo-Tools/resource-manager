@@ -134,7 +134,7 @@ public class AlertingHandlerTest {
     }
 
     @Test
-    public void startValidationLoopNoBreach(VertxTestContext testContext) throws InterruptedException {
+    public void startValidationLoopNoViolation(VertxTestContext testContext) throws InterruptedException {
         JsonObject alertingDTO = JsonObject.mapFrom(deploymentAlertingDTO);
         when(deploymentService.findAllActiveWithAlerting())
             .thenReturn(Single.just(new JsonArray(List.of(alertingDTO))));
@@ -152,12 +152,12 @@ public class AlertingHandlerTest {
     }
 
     @Test
-    public void startValidationLoopBreachSuccessfulNotification() {
+    public void startValidationLoopViolationSuccessfulNotification() {
         MonitoredMetricValue monitoredMetricValue =
             TestMetricProvider.createMonitoredMetricValue(MonitoringMetricEnum.CPU_UTIL, 95.0);
         r1.getMonitoredMetricValues().add(monitoredMetricValue);
         JsonObject alertingDTO = JsonObject.mapFrom(deploymentAlertingDTO);
-        AlertMessage am = new AlertMessage(AlertType.SLO_BREACH, r1.getResourceId(), monitoredMetricValue);
+        AlertMessage am = new AlertMessage(AlertType.SLO_VIOLATION, r1.getResourceId(), monitoredMetricValue);
         when(deploymentService.findAllActiveWithAlerting())
             .thenReturn(Single.just(new JsonArray(List.of(alertingDTO))));
         when(webClient.postAbs("http://localhost:9999")).thenReturn(httpRequest);
@@ -175,19 +175,19 @@ public class AlertingHandlerTest {
             ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
             verify(logger, times(3)).info(loggerInfo.capture());
             assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Validate resources of deployment: 1");
-            assertThat(loggerInfo.getAllValues().get(1)).startsWith("{\"type\":\"SLO_BREACH\",\"resource_id\":1," +
+            assertThat(loggerInfo.getAllValues().get(1)).startsWith("{\"type\":\"SLO_VIOLATION\",\"resource_id\":1," +
                 "\"metric\":\"cpu%\",\"value\":95.0,\"timestamp\":");
             assertThat(loggerInfo.getAllValues().get(2)).isEqualTo("Finished: validation of deployments");
         }
     }
 
     @Test
-    public void startValidationLoopBreachFailedNotification() {
+    public void startValidationLoopViolationFailedNotification() {
         MonitoredMetricValue monitoredMetricValue =
             TestMetricProvider.createMonitoredMetricValue(MonitoringMetricEnum.CPU_UTIL, 95.0);
         r1.getMonitoredMetricValues().add(monitoredMetricValue);
         JsonObject alertingDTO = JsonObject.mapFrom(deploymentAlertingDTO);
-        AlertMessage am = new AlertMessage(AlertType.SLO_BREACH, r1.getResourceId(), monitoredMetricValue);
+        AlertMessage am = new AlertMessage(AlertType.SLO_VIOLATION, r1.getResourceId(), monitoredMetricValue);
         when(deploymentService.findAllActiveWithAlerting())
             .thenReturn(Single.just(new JsonArray(List.of(alertingDTO))));
         when(webClient.postAbs("http://localhost:9999")).thenReturn(httpRequest);
@@ -204,7 +204,7 @@ public class AlertingHandlerTest {
             ArgumentCaptor<String> loggerInfo = ArgumentCaptor.forClass(String.class);
             verify(logger, times(4)).info(loggerInfo.capture());
             assertThat(loggerInfo.getAllValues().get(0)).isEqualTo("Validate resources of deployment: 1");
-            assertThat(loggerInfo.getAllValues().get(1)).startsWith("{\"type\":\"SLO_BREACH\",\"resource_id\":1," +
+            assertThat(loggerInfo.getAllValues().get(1)).startsWith("{\"type\":\"SLO_VIOLATION\",\"resource_id\":1," +
                 "\"metric\":\"cpu%\",\"value\":95.0,\"timestamp\":");
             assertThat(loggerInfo.getAllValues().get(2)).startsWith("Failed to notify client status code: 421");
             assertThat(loggerInfo.getAllValues().get(3)).isEqualTo("Finished: validation of deployments");

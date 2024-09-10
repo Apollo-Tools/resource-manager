@@ -173,11 +173,11 @@ info:
       The requirements for this endpoint are:
       - accept post requests
       - respond with empty body and status code 204
-      The structure of a notification consists of the type *slo-breach*, id of the concerning resource, name of the 
+      The structure of a notification consists of the type *SLO_VIOLATION*, id of the concerning resource, name of the 
       metric, observed value and timestamp of the event. 
       ```
       {
-        "type": "slo-breach",
+        "type": "SLO_VIOLATION",
         "resource_id": <id-of-the-resource>,
         "metric": <name-of-the-metric>,
         "value": <current-value-of-the-metric>,
@@ -2198,7 +2198,7 @@ paths:
                       format: int64
                       example: 1
                     alert_notification_url:
-                      description: The url where to send alerts in case of an SLO-breach.
+                      description: The url where to send alerts in case of an SLO violation.
                       type: string
                       example: http://localhost:1234
 
