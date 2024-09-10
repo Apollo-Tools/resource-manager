@@ -3747,7 +3747,7 @@ components:
           type: string
           enum:
             - aws
-            - custom-cloud
+            - custom-fog
             - custom-edge
           example: aws
         environment:
@@ -3767,6 +3767,7 @@ components:
           type: string
           enum:
             - cloud
+            - fog
             - edge
         created_at:
           type: integer
