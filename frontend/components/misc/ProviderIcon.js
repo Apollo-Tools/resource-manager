@@ -24,9 +24,9 @@ const ProviderIcon = ({provider, className}) => {
         <Image src="/edge.svg" height="20" width="20" alt="Edge"/>
       </span>;
       break;
-    case 'custom-cloud':
+    case 'custom-fog':
       icon = <span className="relative top-1 inline-block">
-        <Image src="/custom-cloud.svg" height="20" width="20" alt="Custom Cloud"/>
+        <Image src="/fog.svg" height="20" width="20" alt="Custom Fog"/>
       </span>;
 
 
