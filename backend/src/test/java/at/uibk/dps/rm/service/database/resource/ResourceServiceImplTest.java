@@ -1,6 +1,8 @@
 package at.uibk.dps.rm.service.database.resource;
 
 import at.uibk.dps.rm.entity.dto.SLORequest;
+import at.uibk.dps.rm.entity.dto.resource.FindAllFunctionDeploymentScrapeTargetsDTO;
+import at.uibk.dps.rm.entity.dto.resource.FindAllOpenFaaSScrapeTargetsDTO;
 import at.uibk.dps.rm.entity.dto.slo.ExpressionType;
 import at.uibk.dps.rm.entity.dto.slo.ServiceLevelObjective;
 import at.uibk.dps.rm.entity.model.*;
@@ -36,7 +38,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -189,6 +193,27 @@ public class ResourceServiceImplTest {
             })));
     }
 
+    @Test
+    void findAllByPlatform(VertxTestContext testContext) {
+        r1.getMain().setPlatform(p1);
+        r2.getMain().setPlatform(p1);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findAllMainResourcesByPlatform(sessionManager, p1.getPlatform()))
+            .thenReturn(Single.just(List.of(r1, r2)));
+
+        resourceService.findAllByPlatform(p1.getPlatform(),
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(0).getJsonObject("platform").getLong("platform_id"))
+                    .isEqualTo(p1.getPlatformId());
+                assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                assertThat(result.getJsonObject(1).getJsonObject("platform").getLong("platform_id"))
+                    .isEqualTo(p1.getPlatformId());
+                testContext.completeNow();
+            })));
+    }
+
 
     @Test
     void findAllByResourceIds(VertxTestContext testContext) {
@@ -202,6 +227,61 @@ public class ResourceServiceImplTest {
                 assertThat(result.size()).isEqualTo(2);
                 assertThat(result.getJsonObject(0).getLong("resource_id")).isEqualTo(1L);
                 assertThat(result.getJsonObject(1).getLong("resource_id")).isEqualTo(2L);
+                testContext.completeNow();
+            })));
+    }
+
+    @Test
+    void findAllScrapeTargets(VertxTestContext testContext) {
+        Resource r3 = TestResourceProvider.createResource(3L);
+        FindAllFunctionDeploymentScrapeTargetsDTO st1 =
+            TestDBDTOProvider.createFindFunctionDeploymentScrapeTarget(r1.getResourceId(), "http://r1.com", 9101);
+        FindAllFunctionDeploymentScrapeTargetsDTO st2 =
+            TestDBDTOProvider.createFindFunctionDeploymentScrapeTarget(r3.getResourceId(), "http://r3.com", 9103);
+        FindAllOpenFaaSScrapeTargetsDTO st3 =
+            TestDBDTOProvider.createFindOpenFaaSScrapeTarget(r2.getResourceId(), "http://r2.com",
+                BigDecimal.valueOf(9102));
+        FindAllOpenFaaSScrapeTargetsDTO stNoBaseUrl =
+            TestDBDTOProvider.createFindOpenFaaSScrapeTarget(5L, null, BigDecimal.valueOf(9102));
+        FindAllOpenFaaSScrapeTargetsDTO stNoMetricsPort =
+            TestDBDTOProvider.createFindOpenFaaSScrapeTarget(6L, "http://r6.com", null);
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(resourceRepository.findAllFunctionDeploymentTargets(sessionManager))
+            .thenReturn(Single.just(Set.of(st1, st2)));
+        when(resourceRepository.findAllOpenFaaSTargets(sessionManager))
+            .thenReturn(Single.just(List.of(st3, stNoBaseUrl, stNoMetricsPort)));
+
+        resourceService.findAllScrapeTargets(
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(3);
+                JsonObject res1 = result.stream()
+                    .map(resource -> (JsonObject) resource)
+                    .filter(resource -> resource.getJsonObject("labels").getString("resource").equals("1"))
+                    .findFirst()
+                    .orElse(new JsonObject());
+                JsonObject res2 = result.stream()
+                    .map(resource -> (JsonObject) resource)
+                    .filter(resource -> resource.getJsonObject("labels").getString("resource").equals("2"))
+                    .findFirst()
+                    .orElse(new JsonObject());
+                JsonObject res3 = result.stream()
+                    .map(resource -> (JsonObject) resource)
+                    .filter(resource -> resource.getJsonObject("labels").getString("resource").equals("3"))
+                    .findFirst()
+                    .orElse(new JsonObject());
+                assertThat(res1.getJsonObject("labels").getString("deployment"))
+                    .isEqualTo("2");
+                assertThat(res1.getJsonObject("labels").getString("resource_deployment"))
+                    .isEqualTo("1");
+                assertThat(res1.getString("targets")).isEqualTo("[http://r1.com:9101/metrics]");
+                assertThat(res2.getJsonObject("labels").containsKey("deployment")).isEqualTo(false);
+                assertThat(res2.getJsonObject("labels").containsKey("resource_deployment"))
+                    .isEqualTo(false);
+                assertThat(res2.getString("targets")).isEqualTo("[http://r2.com:9102/metrics]");
+                assertThat(res3.getJsonObject("labels").getString("deployment")).isEqualTo("2");
+                assertThat(res3.getJsonObject("labels").getString("resource_deployment"))
+                    .isEqualTo("1");
+                assertThat(res3.getString("targets")).isEqualTo("[http://r3.com:9103/metrics]");
                 testContext.completeNow();
             })));
     }
