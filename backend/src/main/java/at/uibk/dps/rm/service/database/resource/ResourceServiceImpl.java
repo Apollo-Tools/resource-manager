@@ -262,11 +262,11 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
             Observable<ScrapeTargetDTO> findOpenFaasResources = repository.findAllOpenFaaSTargets(sm)
                 .flatMapObservable(Observable::fromIterable)
                 .filter(scrapeTarget -> scrapeTarget.getBaseUrl() != null && scrapeTarget.getMetricsPort() != null)
-                .map(functionDeployment -> {
+                .map(findScrapeTarget -> {
                     ScrapeTargetDTO scrapeTarget = new ScrapeTargetDTO();
-                    scrapeTarget.setTargets(List.of(functionDeployment.getBaseUrl() + ':' +
-                        functionDeployment.getMetricsPort().intValue() + "/metrics"));
-                    scrapeTarget.setLabels(Map.of("resource", Long.toString(functionDeployment.getResourceId())));
+                    scrapeTarget.setTargets(List.of(findScrapeTarget.getBaseUrl() + ':' +
+                        findScrapeTarget.getMetricsPort().intValue() + "/metrics"));
+                    scrapeTarget.setLabels(Map.of("resource", Long.toString(findScrapeTarget.getResourceId())));
                     return scrapeTarget;
                 });
             return Observable.merge(findEc2Resources, findOpenFaasResources).toList();

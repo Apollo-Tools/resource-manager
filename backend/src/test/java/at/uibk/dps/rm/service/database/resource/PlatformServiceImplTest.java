@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resource;
 
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.*;
 import at.uibk.dps.rm.repository.resource.PlatformRepository;
 import at.uibk.dps.rm.service.database.util.SessionManager;
@@ -61,6 +62,24 @@ public class PlatformServiceImplTest {
             assertThat(result.getJsonObject(0).getLong("platform_id")).isEqualTo(1L);
             assertThat(result.getJsonObject(1).getLong("platform_id")).isEqualTo(2L);
             testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void findAllByResourceProvider(VertxTestContext testContext) {
+        Platform p1 = TestPlatformProvider.createPlatformFaas(1L, "lambda");
+        Platform p2 = TestPlatformProvider.createPlatformFaas(2L, "openfaas");
+
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(platformRepository.findAllByResourceProvider(sessionManager, ResourceProviderEnum.AWS.getValue()))
+            .thenReturn(Single.just(List.of(p1, p2)));
+
+        platformService.findAllByResourceProvider(ResourceProviderEnum.AWS.getValue(),
+            testContext.succeeding(result -> testContext.verify(() -> {
+                assertThat(result.size()).isEqualTo(2);
+                assertThat(result.getJsonObject(0).getLong("platform_id")).isEqualTo(1L);
+                assertThat(result.getJsonObject(1).getLong("platform_id")).isEqualTo(2L);
+                testContext.completeNow();
         })));
     }
 }
