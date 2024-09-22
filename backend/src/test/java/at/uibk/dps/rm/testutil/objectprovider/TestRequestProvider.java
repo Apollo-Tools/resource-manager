@@ -22,7 +22,7 @@ public class TestRequestProvider {
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
             List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
-            DockerCredentials dockerCredentials) {
+            DockerCredentials dockerCredentials, DeploymentValidation validation) {
         DeployResourcesRequest request = new DeployResourcesRequest();
         request.setFunctionResources(functionResources);
         request.setServiceResources(serviceResources);
@@ -30,7 +30,15 @@ public class TestRequestProvider {
         deploymentCredentials.setDockerCredentials(dockerCredentials);
         request.setCredentials(deploymentCredentials);
         request.setLockResources(lockResources);
+        request.setValidation(validation);
         return request;
+    }
+
+    public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
+            List<ServiceResourceIds> serviceResources, List<ResourceId> lockResources,
+            DockerCredentials dockerCredentials) {
+        return createDeployResourcesRequest(functionResources, serviceResources, lockResources, dockerCredentials,
+            null);
     }
 
     public static DeployResourcesRequest createDeployResourcesRequest(List<FunctionResourceIds> functionResources,
@@ -125,5 +133,12 @@ public class TestRequestProvider {
         deployTerminateDTO.setFunctionDeployments(List.of());
         deployTerminateDTO.setServiceDeployments(List.of());
         return deployTerminateDTO;
+    }
+
+    public static DeploymentValidation createDeploymentValidation(long ensembleId, String alertNotificationUrl) {
+        DeploymentValidation validation = new DeploymentValidation();
+        validation.setEnsembleId(ensembleId);
+        validation.setAlertNotificationUrl(alertNotificationUrl);
+        return validation;
     }
 }

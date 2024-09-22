@@ -53,7 +53,7 @@ public class DeploymentValidationUtility {
     public Single<Long> checkEnsembleResourcesForAlerting(SessionManager sm, DeployResourcesRequest request,
                                                           Deployment deployment, long accountId) {
         DeploymentValidation validation = request.getValidation();
-        deployment.setAlertNotificationUrl(request.getValidation().getAlertNotificationUrl());
+        deployment.setAlertNotificationUrl(validation.getAlertNotificationUrl());
         return repositoryProvider.getEnsembleRepository()
             .findByIdAndAccountId(sm, request.getValidation().getEnsembleId(), accountId)
             .switchIfEmpty(Single.error(new NotFoundException(Ensemble.class)))
@@ -72,11 +72,11 @@ public class DeploymentValidationUtility {
                     .fromIterable(request.getFunctionResources())
                     .map(FunctionResourceIds::getResourceId);
                 return Observable.merge(serviceResourceIds, functionResourceIds)
-                    .filter(ensembleResourceIds::contains)
+                    .filter(resourceId -> !ensembleResourceIds.contains(resourceId))
                     .isEmpty();
             })
-            .flatMap(containsNonEnsembleResource -> {
-                if (containsNonEnsembleResource) {
+            .flatMap(containsOnlyEnsembleResources -> {
+                if (!containsOnlyEnsembleResources) {
                     return Single.error(new BadInputException("Request contains non ensemble resource"));
                 }
                 return Single.just(1L);

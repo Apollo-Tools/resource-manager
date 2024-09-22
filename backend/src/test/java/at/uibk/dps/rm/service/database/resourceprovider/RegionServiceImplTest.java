@@ -1,5 +1,6 @@
 package at.uibk.dps.rm.service.database.resourceprovider;
 
+import at.uibk.dps.rm.entity.dto.resource.ResourceProviderEnum;
 import at.uibk.dps.rm.entity.model.Region;
 import at.uibk.dps.rm.entity.model.ResourceProvider;
 import at.uibk.dps.rm.exception.AlreadyExistsException;
@@ -99,6 +100,21 @@ public class RegionServiceImplTest {
         when(regionRepository.findAllByProvider(sessionManager, providerId)).thenReturn(Single.just(List.of(r1, r2)));
 
         regionService.findAllByProviderId(providerId, testContext.succeeding(result -> testContext.verify(() -> {
+            assertThat(result.size()).isEqualTo(2);
+            assertThat(result.getJsonObject(0).getLong("region_id")).isEqualTo(1L);
+            assertThat(result.getJsonObject(1).getLong("region_id")).isEqualTo(2L);
+            testContext.completeNow();
+        })));
+    }
+
+    @Test
+    void findAllByProviderName(VertxTestContext testContext) {
+        String providerName = ResourceProviderEnum.AWS.getValue();
+
+        SessionMockHelper.mockSingle(smProvider, sessionManager);
+        when(regionRepository.findAllByProvider(sessionManager, providerName)).thenReturn(Single.just(List.of(r1, r2)));
+
+        regionService.findAllByProviderName(providerName, testContext.succeeding(result -> testContext.verify(() -> {
             assertThat(result.size()).isEqualTo(2);
             assertThat(result.getJsonObject(0).getLong("region_id")).isEqualTo(1L);
             assertThat(result.getJsonObject(1).getLong("region_id")).isEqualTo(2L);

@@ -3,6 +3,7 @@ package at.uibk.dps.rm.service.database.util;
 import at.uibk.dps.rm.entity.dto.DeployResourcesRequest;
 import at.uibk.dps.rm.entity.dto.credentials.DockerCredentials;
 import at.uibk.dps.rm.entity.dto.deployment.DeployResourcesDTO;
+import at.uibk.dps.rm.entity.dto.deployment.DeploymentValidation;
 import at.uibk.dps.rm.entity.dto.deployment.FunctionResourceIds;
 import at.uibk.dps.rm.entity.dto.deployment.ServiceResourceIds;
 import at.uibk.dps.rm.entity.dto.resource.PlatformEnum;
@@ -32,6 +33,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -51,6 +53,8 @@ public class DeploymentValidationUtilityTest {
 
     @Mock
     private SessionManager sessionManager;
+    @Mock
+    private Deployment d1;
 
     private Platform lambda, ec2, openFaas;
     private ResourceProvider rpAWS;
@@ -59,6 +63,7 @@ public class DeploymentValidationUtilityTest {
     private Function f1, f2;
     private Service s1, s2;
     private VPC vpc;
+    private Ensemble e1;
     private DeployResourcesRequest requestDTO;
     private DeployResourcesDTO deployResourcesDTO;
 
@@ -92,9 +97,12 @@ public class DeploymentValidationUtilityTest {
         ServiceResourceIds sri2 = TestServiceProvider.createServiceResourceIds(s2.getServiceId(), 3L);
         ServiceResourceIds sri3 = TestServiceProvider.createServiceResourceIds(s2.getServiceId(), 4L);
         vpc = TestResourceProviderProvider.createVPC(1L, regionAWS);
+        e1 = TestEnsembleProvider.createEnsemble(1L, accountId, "e1", true);
         DockerCredentials dockerCredentials = TestDTOProvider.createDockerCredentials();
+        DeploymentValidation deploymentValidation = TestRequestProvider.createDeploymentValidation(1L, "http" +
+            "://localhost");
         requestDTO = TestRequestProvider.createDeployResourcesRequest(List.of(fri1, fri2,
-            fri3), List.of(sri1, sri2, sri3), List.of(), dockerCredentials);
+            fri3), List.of(sri1, sri2, sri3), List.of(), dockerCredentials, deploymentValidation);
         deployResourcesDTO = TestRequestProvider
             .createBlankDeployRequest(dockerCredentials);
     }
@@ -135,6 +143,55 @@ public class DeploymentValidationUtilityTest {
                 .countMissingCustomMetricValuesByResourceId(eq(sessionManager), anyLong(), anyBoolean()))
                 .thenReturn(Single.just(0L));
         }
+    }
+
+    @Test
+    void checkEnsembleResourcesForAlertingValid(VertxTestContext testContext) {
+        when(repositoryMock.getEnsembleRepository().findByIdAndAccountId(sessionManager, e1.getEnsembleId(),
+            accountId)).thenReturn(Maybe.just(e1));
+        when(repositoryMock.getResourceRepository().findAllByEnsembleId(sessionManager, e1.getEnsembleId()))
+            .thenReturn(Single.just(List.of(r1, r2, r3, r4)));
+
+        utility.checkEnsembleResourcesForAlerting(sessionManager, requestDTO, d1, accountId)
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo(1L);
+                    verify(d1).setAlertNotificationUrl("http://localhost");
+                    verify(d1).setEnsemble(e1);
+                    testContext.completeNow();
+                }),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void checkEnsembleResourcesForAlertingInvalid(VertxTestContext testContext) {
+        when(repositoryMock.getEnsembleRepository().findByIdAndAccountId(sessionManager, e1.getEnsembleId(),
+            accountId)).thenReturn(Maybe.just(e1));
+        when(repositoryMock.getResourceRepository().findAllByEnsembleId(sessionManager, e1.getEnsembleId()))
+            .thenReturn(Single.just(List.of(r1, r4)));
+
+        utility.checkEnsembleResourcesForAlerting(sessionManager, requestDTO, d1, accountId)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("Request contains non ensemble resource");
+                    testContext.completeNow();
+                })
+            );
+    }
+
+    @Test
+    void checkEnsembleResourcesForAlertingEnsembleNotFound(VertxTestContext testContext) {
+        when(repositoryMock.getEnsembleRepository().findByIdAndAccountId(sessionManager, e1.getEnsembleId(),
+            accountId)).thenReturn(Maybe.empty());
+
+        utility.checkEnsembleResourcesForAlerting(sessionManager, requestDTO, d1, accountId)
+            .subscribe(result -> testContext.verify(() -> fail("method did not throw exception")),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(NotFoundException.class);
+                    testContext.completeNow();
+                })
+            );
     }
 
     @Test
