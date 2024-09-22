@@ -18,9 +18,9 @@ public enum ResourceProviderEnum {
      */
     AWS("aws"),
     /**
-     * Custom Cloud
+     * Custom Fog
      */
-    CUSTOM_CLOUD("custom-cloud"),
+    CUSTOM_FOG("custom-fog"),
     /**
      * OpenFaaS
      */

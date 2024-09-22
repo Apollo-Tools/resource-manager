@@ -63,7 +63,7 @@ public class RegionRepositoryTest extends DatabaseTest {
         "1, true, us-east-1, aws, cloud",
         "2, true, us-west-2, aws, cloud",
         "3, true, edge, custom-edge, edge",
-        "4, true, private-cloud, custom-cloud, cloud",
+        "4, true, fog, custom-fog, fog",
         "5, false, none, none, none",
     })
     void findByIdAndFetch(long id, boolean exists, String name, String resourceProvider, String environment,
@@ -94,8 +94,8 @@ public class RegionRepositoryTest extends DatabaseTest {
         "us-west-2, 2, false, -1, none, none",
         "edge, 5, true, 3, custom-edge, edge",
         "edge, 1, false, -1, none, none",
-        "private-cloud, 4, true, 4, custom-cloud, cloud",
-        "private-cloud, 2, false, -1, none, none",
+        "fog, 4, true, 4, custom-fog, fog",
+        "fog, 2, false, -1, none, none",
         "eu-west-1, 4, false, -1, none, none",
     })
     void findByIdAndFetch(String name, long providerId, boolean exists, long id, String resourceProvider,
@@ -134,16 +134,16 @@ public class RegionRepositoryTest extends DatabaseTest {
                 assertThat(result.get(1).getResourceProvider().getProvider()).isEqualTo("aws");
                 assertThat(result.get(1).getResourceProvider().getEnvironment().getEnvironment())
                     .isEqualTo("cloud");
-                assertThat(result.get(2).getRegionId()).isEqualTo(4L);
-                assertThat(result.get(2).getName()).isEqualTo("private-cloud");
-                assertThat(result.get(2).getResourceProvider().getProvider()).isEqualTo("custom-cloud");
+                assertThat(result.get(2).getRegionId()).isEqualTo(3L);
+                assertThat(result.get(2).getName()).isEqualTo("edge");
+                assertThat(result.get(2).getResourceProvider().getProvider()).isEqualTo("custom-edge");
                 assertThat(result.get(2).getResourceProvider().getEnvironment().getEnvironment())
-                    .isEqualTo("cloud");
-                assertThat(result.get(3).getRegionId()).isEqualTo(3L);
-                assertThat(result.get(3).getName()).isEqualTo("edge");
-                assertThat(result.get(3).getResourceProvider().getProvider()).isEqualTo("custom-edge");
-                assertThat(result.get(3).getResourceProvider().getEnvironment().getEnvironment())
                     .isEqualTo("edge");
+                assertThat(result.get(3).getRegionId()).isEqualTo(4L);
+                assertThat(result.get(3).getName()).isEqualTo("fog");
+                assertThat(result.get(3).getResourceProvider().getProvider()).isEqualTo("custom-fog");
+                assertThat(result.get(3).getResourceProvider().getEnvironment().getEnvironment())
+                    .isEqualTo("fog");
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }
@@ -170,7 +170,7 @@ public class RegionRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindAllByProviderName() {
         return Stream.of(
             Arguments.of(ResourceProviderEnum.AWS.getValue(), List.of(1L, 2L)),
-            Arguments.of(ResourceProviderEnum.CUSTOM_CLOUD.getValue(), List.of(4L)),
+            Arguments.of(ResourceProviderEnum.CUSTOM_FOG.getValue(), List.of(4L)),
             Arguments.of(ResourceProviderEnum.CUSTOM_EDGE.getValue(), List.of(3L)),
             Arguments.of("none", List.of())
         );
@@ -191,8 +191,8 @@ public class RegionRepositoryTest extends DatabaseTest {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L), List.of("aws", "aws")),
             Arguments.of(2L, List.of(1L, 2L), List.of("aws", "aws")),
-            Arguments.of(3L, List.of(1L, 2L, 3L, 4L), List.of("aws", "aws", "custom-edge", "custom-cloud")),
-            Arguments.of(4L, List.of(1L, 2L, 3L, 4L), List.of("aws", "aws", "custom-edge", "custom-cloud")),
+            Arguments.of(3L, List.of(1L, 2L, 3L, 4L), List.of("aws", "aws", "custom-edge", "custom-fog")),
+            Arguments.of(4L, List.of(1L, 2L, 3L, 4L), List.of("aws", "aws", "custom-edge", "custom-fog")),
             Arguments.of(99L, List.of(), List.of())
         );
     }

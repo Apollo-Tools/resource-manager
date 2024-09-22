@@ -44,7 +44,7 @@ public class PlatformRepositoryTest extends DatabaseTest {
         return Stream.of(
             Arguments.of(ResourceProviderEnum.AWS, List.of(PlatformEnum.LAMBDA, PlatformEnum.EC2,
                 PlatformEnum.OPENFAAS, PlatformEnum.K8S)),
-            Arguments.of(ResourceProviderEnum.CUSTOM_CLOUD, List.of(PlatformEnum.OPENFAAS, PlatformEnum.K8S)),
+            Arguments.of(ResourceProviderEnum.CUSTOM_FOG, List.of(PlatformEnum.OPENFAAS, PlatformEnum.K8S)),
             Arguments.of(ResourceProviderEnum.CUSTOM_EDGE, List.of(PlatformEnum.OPENFAAS, PlatformEnum.K8S))
         );
     }

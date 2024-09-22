@@ -79,7 +79,7 @@ public class DeploymentValidationUtilityTest {
         rpAWS = TestResourceProviderProvider.createResourceProvider(1L,
             ResourceProviderEnum.AWS.getValue());
         ResourceProvider rpCustom = TestResourceProviderProvider.createResourceProvider(1L,
-            ResourceProviderEnum.CUSTOM_CLOUD.getValue());
+            ResourceProviderEnum.CUSTOM_FOG.getValue());
         regionAWS = TestResourceProviderProvider.createRegion(1L, "us-east-1", rpAWS);
         Region regionCustom = TestResourceProviderProvider.createRegion(1L, "custom", rpCustom);
         r1 = TestResourceProvider.createResource(1L, lambda, regionAWS);
