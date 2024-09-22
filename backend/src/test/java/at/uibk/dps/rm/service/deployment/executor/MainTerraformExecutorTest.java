@@ -61,6 +61,26 @@ public class MainTerraformExecutorTest {
     }
 
     @Test
+    void applyWithTargets(VertxTestContext testContext) {
+        List<String> targets = List.of("t1", "t2");
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas();
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
+        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("apply", targets);
+
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
+            terraformExecutor.apply(deploymentPath.getRootFolder(), targets)
+                .subscribe(result -> testContext.verify(() -> {
+                        assertThat(result.getOutput()).isEqualTo("output");
+                        testContext.completeNow();
+                    }),
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+        }
+    }
+
+    @Test
     void getOutput(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas();
@@ -99,6 +119,26 @@ public class MainTerraformExecutorTest {
     }
 
     @Test
+    void destroyWithTargets(VertxTestContext testContext) {
+        List<String> targets = List.of("t1", "t2");
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas();
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
+        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("destroy", targets);
+
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
+            terraformExecutor.destroy(deploymentPath.getRootFolder(), targets)
+                .subscribe(result -> testContext.verify(() -> {
+                        assertThat(result.getOutput()).isEqualTo("output");
+                        testContext.completeNow();
+                    }),
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+        }
+    }
+
+    @Test
     void destroyNoEdgeCredentials(VertxTestContext testContext) {
         DeploymentPath deploymentPath = new DeploymentPath(1L, config);
         MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWS();
@@ -108,6 +148,25 @@ public class MainTerraformExecutorTest {
         try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
                 .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
             terraformExecutor.destroy(deploymentPath.getRootFolder())
+                .subscribe(result -> testContext.verify(() -> {
+                        assertThat(result.getOutput()).isEqualTo("output");
+                        testContext.completeNow();
+                    }),
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+        }
+    }
+
+    @Test
+    void refresh(VertxTestContext testContext) {
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
+        MainTerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutorAWSOpenFaas();
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
+        List<String> commands = TestExecutorProvider.tfCommandsWithCredsAWSOpenFaas("-refresh-only");
+
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
+            .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
+            terraformExecutor.refresh(deploymentPath.getRootFolder())
                 .subscribe(result -> testContext.verify(() -> {
                         assertThat(result.getOutput()).isEqualTo("output");
                         testContext.completeNow();

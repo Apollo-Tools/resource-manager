@@ -29,8 +29,8 @@ public class TestExecutorProvider {
         return new MainTerraformExecutor(deploymentCredentials);
     }
 
-    public static List<String> tfCommandsWithCredsAWSOpenFaas(String mainCommand) {
-        List<String> commands = tfCommandsWithCredsAWS(mainCommand);
+    public static List<String> tfCommandsWithCredsAWSOpenFaas(String mainCommand, List<String> targets) {
+        List<String> commands = tfCommandsWithCredsAWS(mainCommand, targets);
         String varSeparator = "", stringSperator = "\"";
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             varSeparator = "\"";
@@ -42,11 +42,24 @@ public class TestExecutorProvider {
         return commands;
     }
 
-    public static List<String> tfCommandsWithCredsAWS(String mainCommand) {
+    public static List<String> tfCommandsWithCredsAWSOpenFaas(String mainCommand) {
+        return tfCommandsWithCredsAWSOpenFaas(mainCommand, List.of());
+    }
+
+    public static List<String> tfCommandsWithCredsAWS(String mainCommand, List<String> targets) {
         List<String> commands = new ArrayList<>();
         commands.add("terraform");
+        if (mainCommand.equals("-refresh-only")) {
+            commands.add("apply");
+        }
         commands.add(mainCommand);
         commands.add("-auto-approve");
+        if (!targets.isEmpty()) {
+            targets.forEach(target -> {
+                commands.add("-target");
+                commands.add(target);
+            });
+        }
         String varSeparator = "";
         if (System.getProperty("os.name").toLowerCase().contains("windows")) {
             varSeparator = "\"";
@@ -56,5 +69,9 @@ public class TestExecutorProvider {
         commands.add("-var=" + varSeparator + "aws_session_token=sessiontoken" + varSeparator);
         commands.add("");
         return commands;
+    }
+
+    public static List<String> tfCommandsWithCredsAWS(String mainCommand) {
+        return tfCommandsWithCredsAWS(mainCommand, List.of());
     }
 }

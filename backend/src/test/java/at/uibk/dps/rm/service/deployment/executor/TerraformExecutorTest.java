@@ -48,6 +48,7 @@ public class TerraformExecutorTest {
         return Stream.of(
           Arguments.of(List.of("terraform", "init")),
           Arguments.of(List.of("terraform", "apply", "-auto-approve")),
+          Arguments.of(List.of("terraform", "apply", "-refresh-only", "-auto-approve")),
           Arguments.of(List.of("terraform", "output", "--json")),
           Arguments.of(List.of("terraform", "destroy", "-auto-approve"))
         );
@@ -68,13 +69,55 @@ public class TerraformExecutorTest {
                     single = terraformExecutor.init(deploymentPath.getRootFolder());
                     break;
                 case "apply":
-                    single = terraformExecutor.apply(deploymentPath.getRootFolder());
+                    if (commands.contains("-refresh-only"))
+                        single = terraformExecutor.refresh(deploymentPath.getRootFolder());
+                    else
+                        single = terraformExecutor.apply(deploymentPath.getRootFolder());
                     break;
                 case "output":
                     single = terraformExecutor.getOutput(deploymentPath.getRootFolder());
                     break;
                 case "destroy":
                     single = terraformExecutor.destroy(deploymentPath.getRootFolder());
+                    break;
+            }
+            single.subscribe(result -> testContext.verify(() -> {
+                        assertThat(result.getOutput()).isEqualTo("output");
+                        testContext.completeNow();
+                    }),
+                    throwable -> testContext.verify(() -> fail("method has thrown exception"))
+                );
+        }
+    }
+
+    private static Stream<Arguments> provideCommandsWithTargets() {
+        return Stream.of(
+          Arguments.of(List.of("terraform", "apply", "-auto-approve", "-target", "t1", "-target", "t2")),
+          Arguments.of(List.of("terraform", "apply", "-refresh-only", "-auto-approve", "-target", "t1", "-target", "t2")),
+          Arguments.of(List.of("terraform", "destroy", "-auto-approve", "-target", "t1", "-target", "t2"))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideCommandsWithTargets")
+    void commandsWithTargets(List<String> commands, VertxTestContext testContext) {
+        List<String> targets = List.of("t1", "t2");
+        DeploymentPath deploymentPath = new DeploymentPath(1L, config);
+        TerraformExecutor terraformExecutor = TestExecutorProvider.createTerraformExecutor();
+        ProcessOutput processOutput = TestDTOProvider.createProcessOutput(process, "output");
+
+        try (MockedConstruction<ProcessExecutor> ignored = ProcessExecutorMockprovider
+                .mockProcessExecutor(deploymentPath.getRootFolder(), processOutput, commands)) {
+            Single<ProcessOutput> single = Single.just(new ProcessOutput());
+            switch (commands.get(1)) {
+                case "apply":
+                    if (commands.contains("-refresh-only"))
+                        single = terraformExecutor.refresh(deploymentPath.getRootFolder(), targets);
+                    else
+                        single = terraformExecutor.apply(deploymentPath.getRootFolder(), targets);
+                    break;
+                case "destroy":
+                    single = terraformExecutor.destroy(deploymentPath.getRootFolder(), targets);
                     break;
             }
             single.subscribe(result -> testContext.verify(() -> {
