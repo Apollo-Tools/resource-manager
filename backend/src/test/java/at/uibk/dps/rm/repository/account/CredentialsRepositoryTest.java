@@ -102,7 +102,7 @@ public class CredentialsRepositoryTest extends DatabaseTest {
                 assertThat(result.get(0).getCredentialsId()).isEqualTo(1L);
                 assertThat(result.get(0).getResourceProvider().getProvider()).isEqualTo("aws");
                 assertThat(result.get(1).getCredentialsId()).isEqualTo(3L);
-                assertThat(result.get(1).getResourceProvider().getProvider()).isEqualTo("custom-cloud");
+                assertThat(result.get(1).getResourceProvider().getProvider()).isEqualTo("custom-fog");
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has not thrown exception"));
     }

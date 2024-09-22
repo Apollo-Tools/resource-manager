@@ -25,13 +25,16 @@ public class EnvironmentRouteTest extends RouterTest {
             .subscribe(result -> {
                 if (result.statusCode() == 200) {
                     JsonArray resultBody = result.bodyAsJsonArray();
-                    assertThat(resultBody.size()).isEqualTo(2);
+                    assertThat(resultBody.size()).isEqualTo(3);
                     assertThat(resultBody.getJsonObject(0).getLong("environment_id")).isEqualTo(1L);
                     assertThat(resultBody.getJsonObject(0).getString("environment"))
                         .isEqualTo("cloud");
                     assertThat(resultBody.getJsonObject(1).getLong("environment_id")).isEqualTo(2L);
                     assertThat(resultBody.getJsonObject(1).getString("environment"))
                         .isEqualTo("edge");
+                    assertThat(resultBody.getJsonObject(2).getLong("environment_id")).isEqualTo(3L);
+                    assertThat(resultBody.getJsonObject(2).getString("environment"))
+                        .isEqualTo("fog");
                     testContext.completeNow();
                 } else {
                     testContext.failNow("operation failed");

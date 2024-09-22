@@ -1,6 +1,5 @@
 package at.uibk.dps.rm.service.monitoring.function;
 
-import at.uibk.dps.rm.service.database.deployment.DeploymentServiceImpl;
 import at.uibk.dps.rm.util.serialization.JsonMapperConfig;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.json.JsonArray;
@@ -24,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 /**
- * Implements tests for the {@link DeploymentServiceImpl} class.
+ * Implements tests for the {@link FunctionExecutionServiceImpl} class.
  *
  * @author matthi-g
  */

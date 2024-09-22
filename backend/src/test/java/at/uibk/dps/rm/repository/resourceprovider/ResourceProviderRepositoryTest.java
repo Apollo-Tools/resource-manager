@@ -22,7 +22,7 @@ public class ResourceProviderRepositoryTest extends DatabaseTest {
     @ParameterizedTest
     @CsvSource({
         "1, true, cloud",
-        "4, true, cloud",
+        "4, true, fog",
         "5, true, edge",
     })
     void findByRegionIdAndPlatformId(long providerId, boolean exists, String environment,
@@ -51,10 +51,10 @@ public class ResourceProviderRepositoryTest extends DatabaseTest {
                 assertThat(result.size()).isEqualTo(3);
                 assertThat(result.get(0).getProviderId()).isEqualTo(1L);
                 assertThat(result.get(0).getEnvironment().getEnvironment()).isEqualTo("cloud");
-                assertThat(result.get(1).getProviderId()).isEqualTo(4L);
-                assertThat(result.get(1).getEnvironment().getEnvironment()).isEqualTo("cloud");
-                assertThat(result.get(2).getProviderId()).isEqualTo(5L);
-                assertThat(result.get(2).getEnvironment().getEnvironment()).isEqualTo("edge");
+                assertThat(result.get(1).getProviderId()).isEqualTo(5L);
+                assertThat(result.get(1).getEnvironment().getEnvironment()).isEqualTo("edge");
+                assertThat(result.get(2).getProviderId()).isEqualTo(4L);
+                assertThat(result.get(2).getEnvironment().getEnvironment()).isEqualTo("fog");
                 testContext.completeNow();
             }), throwable -> testContext.failNow("method has thrown exception"));
     }

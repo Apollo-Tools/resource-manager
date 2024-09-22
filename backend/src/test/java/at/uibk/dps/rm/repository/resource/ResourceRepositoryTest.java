@@ -45,7 +45,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
             Region reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1");
             Region reg2 = TestResourceProviderProvider.createRegion(2L, "us-west-2");
             Region reg3 = TestResourceProviderProvider.createRegion(3L, "edge");
-            Region reg4 = TestResourceProviderProvider.createRegion(4L, "private-cloud");
+            Region reg4 = TestResourceProviderProvider.createRegion(4L, "fog");
             Platform pLambda = TestPlatformProvider.createPlatformContainer(1L, "lambda");
             Platform pEC2 = TestPlatformProvider.createPlatformContainer(2L, "ec2");
             Platform pOpenfaas = TestPlatformProvider.createPlatformContainer(3L, "openfaas");
@@ -176,19 +176,20 @@ public class ResourceRepositoryTest extends DatabaseTest {
         List<String> r4Metrics = List.of("instance-type");
         List<String> r6Metrics = List.of("base-url", "metrics-port");
         String rpAws = "aws";
-        String rpCustomCloud = "custom-cloud";
+        String rpCustomFog = "custom-fog";
         String rpCustomEdge = "custom-edge";
         String eEdge = "edge";
         String eCloud = "cloud";
+        String eFog = "fog";
         return Stream.of(
             Arguments.of(1L, true, r1Metrics, r1Metrics, "us-east-1", rpAws, eCloud, PlatformEnum.K8S),
-            Arguments.of(2L, true, r2Metrics, r2Metrics, "private-cloud", rpCustomCloud, eCloud, PlatformEnum.K8S),
+            Arguments.of(2L, true, r2Metrics, r2Metrics, "fog", rpCustomFog, eFog, PlatformEnum.K8S),
             Arguments.of(3L, true, r3Metrics,  r3Metrics, "us-east-1", rpAws, eCloud, PlatformEnum.LAMBDA),
             Arguments.of(4L, true, r4Metrics, r4Metrics, "us-east-1", rpAws, eCloud, PlatformEnum.EC2),
             Arguments.of(5L, true, List.of(), List.of(), "us-west-2", rpAws, eCloud, PlatformEnum.EC2),
             Arguments.of(6L, true, r6Metrics,  r6Metrics, "edge", rpCustomEdge, eEdge, PlatformEnum.OPENFAAS),
             Arguments.of(7L, true, List.of(),  r1Metrics, "us-east-1", rpAws, eCloud, PlatformEnum.K8S),
-            Arguments.of(8L, true, List.of(), r2Metrics, "private-cloud", rpCustomCloud, eCloud, PlatformEnum.K8S),
+            Arguments.of(8L, true, List.of(), r2Metrics, "fog", rpCustomFog, eFog, PlatformEnum.K8S),
             Arguments.of(9L, false, List.of(),  List.of(), "", "", "", null),
             Arguments.of(99L, false, List.of(), List.of(), "", "", "", null)
         );
@@ -227,10 +228,10 @@ public class ResourceRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindAllMainResources() {
         return Stream.of(
             Arguments.of(List.of(1L, 2L, 3L, 4L, 5L, 6L),
-                List.of("us-east-1", "private-cloud", "us-east-1", "us-east-1", "us-west-2", "edge"),
-                List.of(ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_CLOUD, ResourceProviderEnum.AWS,
+                List.of("us-east-1", "fog", "us-east-1", "us-east-1", "us-west-2", "edge"),
+                List.of(ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_FOG, ResourceProviderEnum.AWS,
                     ResourceProviderEnum.AWS, ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_EDGE),
-                List.of("cloud", "cloud", "cloud", "cloud", "cloud", "edge"),
+                List.of("cloud", "fog", "cloud", "cloud", "cloud", "edge"),
                 List.of(PlatformEnum.K8S, PlatformEnum.K8S, PlatformEnum.LAMBDA, PlatformEnum.EC2, PlatformEnum.EC2,
                     PlatformEnum.OPENFAAS),
                 List.of(ResourceTypeEnum.CONTAINER, ResourceTypeEnum.CONTAINER, ResourceTypeEnum.FAAS,
@@ -302,12 +303,12 @@ public class ResourceRepositoryTest extends DatabaseTest {
             Arguments.of(allResourceIds, List.of(Set.of("pre-pull-timeout", "external-ip",
                         "cluster-url"), Set.of("pre-pull-timeout"), Set.of("deployment-role"), Set.of("instance-type"),
                     Set.of(), Set.of("base-url", "metrics-port"), Set.of(), Set.of()),
-                List.of("us-east-1", "private-cloud", "us-east-1", "us-east-1", "us-west-2", "edge", "us-east-1",
-                    "private-cloud"),
-                List.of(ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_CLOUD, ResourceProviderEnum.AWS,
+                List.of("us-east-1", "fog", "us-east-1", "us-east-1", "us-west-2", "edge", "us-east-1",
+                    "fog"),
+                List.of(ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_FOG, ResourceProviderEnum.AWS,
                     ResourceProviderEnum.AWS, ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_EDGE,
-                    ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_CLOUD),
-                List.of("cloud", "cloud", "cloud", "cloud", "cloud", "edge", "cloud", "cloud"),
+                    ResourceProviderEnum.AWS, ResourceProviderEnum.CUSTOM_FOG),
+                List.of("cloud", "fog", "cloud", "cloud", "cloud", "edge", "cloud", "fog"),
                 List.of(PlatformEnum.K8S, PlatformEnum.K8S, PlatformEnum.LAMBDA, PlatformEnum.EC2, PlatformEnum.EC2,
                     PlatformEnum.OPENFAAS, PlatformEnum.K8S, PlatformEnum.K8S),
                 List.of(ResourceTypeEnum.CONTAINER, ResourceTypeEnum.CONTAINER, ResourceTypeEnum.FAAS,
@@ -394,11 +395,11 @@ public class ResourceRepositoryTest extends DatabaseTest {
         List<Long> emptyList = List.of();
         return Stream.of(
             Arguments.of(List.of(1L), emptyList, emptyList, emptyList, emptyList,
-                List.of(1L, 2L, 3L, 4L, 5L, 7L, 8L)),
+                List.of(1L, 3L, 4L, 5L, 7L)),
             Arguments.of(List.of(2L), emptyList, emptyList, emptyList, emptyList,
                 List.of(6L)),
-            Arguments.of(List.of(1L, 2L), emptyList, emptyList, emptyList, emptyList, allResourceIds),
-            Arguments.of(List.of(3L), emptyList, emptyList, emptyList, emptyList, emptyList),
+            Arguments.of(List.of(1L, 2L), emptyList, emptyList, emptyList, emptyList, List.of(1L, 3L, 4L, 5L, 6L, 7L)),
+            Arguments.of(List.of(3L), emptyList, emptyList, emptyList, emptyList, List.of(2L, 8L)),
             Arguments.of(emptyList, List.of(1L), emptyList, emptyList, emptyList,
                 List.of(3L, 4L, 5L, 6L)),
             Arguments.of(emptyList, List.of(4L), emptyList, emptyList, emptyList,
@@ -445,7 +446,7 @@ public class ResourceRepositoryTest extends DatabaseTest {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 2L),
                 List.of(List.of("external-ip", "cluster-url", "pre-pull-timeout"), List.of("pre-pull-timeout")),
-                List.of("us-east-1", "private-cloud"), List.of("aws", "custom-cloud"), List.of("cloud", "cloud"),
+                List.of("us-east-1", "fog"), List.of("aws", "custom-fog"), List.of("cloud", "fog"),
                 List.of("k8s", "k8s"), List.of("container", "container")),
             Arguments.of(2L, List.of(7L),
                 List.of(List.of()), List.of("us-east-1"), List.of("aws"), List.of("cloud"),
@@ -486,10 +487,10 @@ public class ResourceRepositoryTest extends DatabaseTest {
         return Stream.of(
             Arguments.of(1L, List.of(1L, 3L, 5L, 8L), List.of(Set.of("pre-pull-timeout", "external-ip",
                         "cluster-url"), Set.of("deployment-role"), Set.of(), Set.of("pre-pull-timeout")),
-                List.of("us-east-1", "us-east-1", "us-west-2", "private-cloud"),
+                List.of("us-east-1", "us-east-1", "us-west-2", "fog"),
                 List.of(ResourceProviderEnum.AWS, ResourceProviderEnum.AWS, ResourceProviderEnum.AWS,
-                    ResourceProviderEnum.CUSTOM_CLOUD),
-                List.of("cloud", "cloud", "cloud", "cloud"),
+                    ResourceProviderEnum.CUSTOM_FOG),
+                List.of("cloud", "cloud", "cloud", "fog"),
                 List.of(PlatformEnum.K8S, PlatformEnum.LAMBDA, PlatformEnum.EC2, PlatformEnum.K8S),
                 List.of(ResourceTypeEnum.CONTAINER, ResourceTypeEnum.FAAS, ResourceTypeEnum.FAAS,
                     ResourceTypeEnum.CONTAINER),
@@ -585,10 +586,10 @@ public class ResourceRepositoryTest extends DatabaseTest {
     private static Stream<Arguments> provideFindAllByResourceIdsAndFetch() {
         return Stream.of(
             Arguments.of(allResourceIds, allResourceIds,
-                List.of(3, 1, 1, 1, 0, 2, 0, 0), List.of("us-east-1", "private-cloud", "us-east-1", "us-east-1",
-                    "us-west-2", "edge", "us-east-1", "private-cloud"),
-                List.of("aws", "custom-cloud", "aws", "aws", "aws", "custom-edge", "aws", "custom-cloud"),
-                List.of("cloud", "cloud", "cloud", "cloud", "cloud", "edge", "cloud", "cloud"), List.of("k8s", "k8s",
+                List.of(3, 1, 1, 1, 0, 2, 0, 0), List.of("us-east-1", "fog", "us-east-1", "us-east-1",
+                    "us-west-2", "edge", "us-east-1", "fog"),
+                List.of("aws", "custom-fog", "aws", "aws", "aws", "custom-edge", "aws", "custom-fog"),
+                List.of("cloud", "fog", "cloud", "cloud", "cloud", "edge", "cloud", "fog"), List.of("k8s", "k8s",
                     "lambda", "ec2", "ec2", "openfaas","k8s", "k8s"),
                 List.of("container", "container", "faas", "faas", "faas", "faas", "container", "container")),
             Arguments.of(List.of(3L, 99L), List.of(3L), List.of(1), List.of("us-east-1"), List.of("aws"),

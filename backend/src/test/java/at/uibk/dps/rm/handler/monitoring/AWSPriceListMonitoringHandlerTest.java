@@ -93,7 +93,7 @@ public class AWSPriceListMonitoringHandlerTest {
         configDTO.setAwsPriceMonitoringPeriod(5.0);
         ResourceProvider rpAWS = TestResourceProviderProvider.createResourceProvider(1L, ResourceProviderEnum.AWS.getValue());
         ResourceProvider rpCustom = TestResourceProviderProvider
-            .createResourceProvider(2L, ResourceProviderEnum.CUSTOM_CLOUD.getValue());
+            .createResourceProvider(2L, ResourceProviderEnum.CUSTOM_FOG.getValue());
         reg1 = TestResourceProviderProvider.createRegion(1L, "us-east-1", rpAWS);
         reg2 = TestResourceProviderProvider.createRegion(2L, "us-east-2", rpAWS);
         Region reg3 = TestResourceProviderProvider.createRegion(3L, "us-east-3", rpCustom);
