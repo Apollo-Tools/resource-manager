@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 
@@ -143,6 +144,28 @@ public class SessionManagerProviderTest {
         });
 
         sessionManagerProvider.withTransactionCompletable(function)
+            .subscribe(() -> testContext.verify(testContext::completeNow),
+                throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void openSession(VertxTestContext testContext) {
+        when(sessionFactory.openSession()).thenReturn(CompletableFuture.completedFuture(session));
+
+        sessionManagerProvider.openSession()
+            .subscribe(result -> testContext.verify(() -> {
+                    assertThat(result).isEqualTo(session);
+                    testContext.completeNow();
+                }), throwable -> testContext.verify(() -> fail("method has thrown exception"))
+            );
+    }
+
+    @Test
+    void closeSession(VertxTestContext testContext) {
+        when(session.close()).thenReturn(CompletableFuture.completedFuture(null));
+
+        sessionManagerProvider.closeSession(session)
             .subscribe(() -> testContext.verify(testContext::completeNow),
                 throwable -> testContext.verify(() -> fail("method has thrown exception"))
             );

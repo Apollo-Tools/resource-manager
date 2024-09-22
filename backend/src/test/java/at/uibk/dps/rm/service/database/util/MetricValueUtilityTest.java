@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -55,10 +56,12 @@ public class MetricValueUtilityTest {
 
     private SessionManager sessionManager;
 
-    Platform pLambda;
-    MetricType mtNumber, mtString, mtBool;
-    Metric m1, m2, m3, m4, m5, m6;
-    PlatformMetric pmNumberMonitored, pmNumberManual, pmStringMonitored, pmStringManual, pmBoolMonitored, pmBoolManual;
+    private Resource r1;
+    private SubResource sr1;
+    private Platform pLambda;
+    private MetricType mtNumber, mtString, mtBool;
+    private Metric m1, m2, m3, m4;
+    private PlatformMetric pmNumberMonitored, pmNumberManual, pmStringManual, pmBoolManual;
 
     @BeforeEach
     void initTest() {
@@ -70,39 +73,37 @@ public class MetricValueUtilityTest {
         mtBool = TestMetricProvider.createMetricTypeBoolean();
         m1 = TestMetricProvider.createMetric(1L, "m1", mtNumber);
         m2 = TestMetricProvider.createMetric(2L, "m2", mtNumber);
-        m3 = TestMetricProvider.createMetric(3L, "m3", mtString);
-        m4 = TestMetricProvider.createMetric(4L, "m4", mtString);
-        m5 = TestMetricProvider.createMetric(5L, "m5", mtBool);
-        m6 = TestMetricProvider.createMetric(6L, "m6", mtBool);
+        m3 = TestMetricProvider.createMetric(4L, "m4", mtString);
+        m4 = TestMetricProvider.createMetric(6L, "m6", mtBool);
         pmNumberMonitored = TestMetricProvider.createPlatformMetric(1L, m1, pLambda, true);
         pmNumberManual = TestMetricProvider.createPlatformMetric(2L, m2, pLambda, false);
-        pmStringMonitored = TestMetricProvider.createPlatformMetric(3L, m3, pLambda, true);
-        pmStringManual = TestMetricProvider.createPlatformMetric(4L, m4, pLambda, false);
-        pmBoolMonitored = TestMetricProvider.createPlatformMetric(5L, m5, pLambda, true);
-        pmBoolManual = TestMetricProvider.createPlatformMetric(6L, m6, pLambda, false);
-
+        pmStringManual = TestMetricProvider.createPlatformMetric(4L, m3, pLambda, false);
+        pmBoolManual = TestMetricProvider.createPlatformMetric(6L, m4, pLambda, false);
+        r1 = TestResourceProvider.createResource(1L, pLambda);
+        sr1 = TestResourceProvider.createSubResource(1L, "sr1", r1.getMain());
         sessionManager = new SessionManager(session);
     }
 
-    @Test
-    void checkAddMetricListValid(VertxTestContext testContext) {
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
-        JsonObject v2 = new JsonObject("{\"metric_id\": 2, \"value\": 2}");
-        JsonObject v4 = new JsonObject("{\"metric_id\": 4, \"value\": \"value\"}");
-        JsonObject v6 = new JsonObject("{\"metric_id\": 6, \"value\": true}");
-        JsonArray values = new JsonArray(List.of(v2, v4, v6));
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void checkAddMetricListValid(boolean isMain, VertxTestContext testContext) {
+        Resource resource = isMain ? r1 : sr1;
+        JsonObject v1 = new JsonObject("{\"metric_id\": 2, \"value\": 2}");
+        JsonObject v2 = new JsonObject("{\"metric_id\": 4, \"value\": \"value\"}");
+        JsonObject v3 = new JsonObject("{\"metric_id\": 6, \"value\": true}");
+        JsonArray values = new JsonArray(List.of(v1, v2, v3));
 
-        when(metricValueRepository.findByResourceAndMetric(eq(sessionManager), eq(r1.getResourceId()), anyLong()))
+        when(metricValueRepository.findByResourceAndMetric(eq(sessionManager), eq(resource.getResourceId()), anyLong()))
             .thenReturn(Maybe.empty());
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
             m2.getMetricId())).thenReturn(Maybe.just(pmNumberManual));
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
-            m4.getMetricId())).thenReturn(Maybe.just(pmStringManual));
+            m3.getMetricId())).thenReturn(Maybe.just(pmStringManual));
         when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
-            m6.getMetricId())).thenReturn(Maybe.just(pmBoolManual));
+            m4.getMetricId())).thenReturn(Maybe.just(pmBoolManual));
         when(session.persist(any(MetricValue.class))).thenReturn(CompletionStages.voidFuture());
 
-        utility.checkAddMetricList(sessionManager, r1, values)
+        utility.checkAddMetricList(sessionManager, resource, values)
             .blockingSubscribe(() -> testContext.verify(() -> {
                     verify(session, times(3)).persist(any(MetricValue.class));
                     testContext.completeNow();
@@ -113,8 +114,6 @@ public class MetricValueUtilityTest {
 
     @Test
     void checkAddMetricListInvalidMetricType(VertxTestContext testContext) {
-        Platform pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
         JsonObject v1 = new JsonObject("{\"metric_id\": 1, \"value\": \"value\"}");
         JsonArray values = new JsonArray(List.of(v1));
 
@@ -136,8 +135,6 @@ public class MetricValueUtilityTest {
 
     @Test
     void checkAddMetricListSetMonitoredValue(VertxTestContext testContext) {
-        Platform pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
         JsonObject v1 = new JsonObject("{\"metric_id\": 1, \"value\": 2}");
         JsonArray values = new JsonArray(List.of(v1));
 
@@ -159,8 +156,6 @@ public class MetricValueUtilityTest {
 
     @Test
     void checkAddMetricListEmptyManualValue(VertxTestContext testContext) {
-        Platform pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
         JsonObject v1 = new JsonObject("{\"metric_id\": 1}");
         JsonArray values = new JsonArray(List.of(v1));
 
@@ -182,8 +177,6 @@ public class MetricValueUtilityTest {
 
     @Test
     void checkAddMetricPlatformMetricNotFound(VertxTestContext testContext) {
-        Platform pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
         JsonObject v1 = new JsonObject("{\"metric_id\": 1}");
         JsonArray values = new JsonArray(List.of(v1));
 
@@ -204,8 +197,6 @@ public class MetricValueUtilityTest {
 
     @Test
     void checkAddMetricMetricValueAlreadyExists(VertxTestContext testContext) {
-        Platform pLambda = TestPlatformProvider.createPlatformFaas(1L, "lambda");
-        Resource r1 = TestResourceProvider.createResource(1L, pLambda);
         JsonObject v1 = new JsonObject("{\"metric_id\": 1}");
         JsonArray values = new JsonArray(List.of(v1));
 
@@ -219,6 +210,50 @@ public class MetricValueUtilityTest {
             .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
                 throwable -> testContext.verify(() -> {
                     assertThat(throwable).isInstanceOf(AlreadyExistsException.class);
+                    testContext.completeNow();
+                })
+            );
+    }
+
+
+    @Test
+    void checkAddMetricMetricValueMetricNotSupportedForMainResource(VertxTestContext testContext) {
+        JsonObject v2 = new JsonObject("{\"metric_id\": 2, \"value\": 2}");
+        JsonArray values = new JsonArray(List.of(v2));
+        pmNumberManual.setIsMainResourceMetric(false);
+
+        when(metricValueRepository.findByResourceAndMetric(eq(sessionManager), eq(r1.getResourceId()), anyLong()))
+            .thenReturn(Maybe.empty());
+        when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
+            m2.getMetricId())).thenReturn(Maybe.just(pmNumberManual));
+
+        utility.checkAddMetricList(sessionManager, r1, values)
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable).hasMessage("metric is not supported for main resources");
+                    testContext.completeNow();
+                })
+            );
+    }
+
+
+    @Test
+    void checkAddMetricMetricValueMetricNotSupportedForSubResource(VertxTestContext testContext) {
+        JsonObject v2 = new JsonObject("{\"metric_id\": 2, \"value\": 2}");
+        JsonArray values = new JsonArray(List.of(v2));
+        pmNumberManual.setIsSubResourceMetric(false);
+
+        when(metricValueRepository.findByResourceAndMetric(eq(sessionManager), eq(sr1.getResourceId()), anyLong()))
+            .thenReturn(Maybe.empty());
+        when(platformMetricRepository.findByPlatformAndMetric(sessionManager, pLambda.getPlatformId(),
+            m2.getMetricId())).thenReturn(Maybe.just(pmNumberManual));
+
+        utility.checkAddMetricList(sessionManager, sr1, values)
+            .blockingSubscribe(() -> testContext.failNow("method did not throw exception"),
+                throwable -> testContext.verify(() -> {
+                    assertThat(throwable).isInstanceOf(BadInputException.class);
+                    assertThat(throwable).hasMessage("metric is not supported for sub resources");
                     testContext.completeNow();
                 })
             );

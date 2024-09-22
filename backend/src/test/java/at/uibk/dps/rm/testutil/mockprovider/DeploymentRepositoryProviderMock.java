@@ -4,6 +4,7 @@ import at.uibk.dps.rm.repository.DeploymentRepositoryProvider;
 import at.uibk.dps.rm.repository.account.CredentialsRepository;
 import at.uibk.dps.rm.repository.account.NamespaceRepository;
 import at.uibk.dps.rm.repository.deployment.*;
+import at.uibk.dps.rm.repository.ensemble.EnsembleRepository;
 import at.uibk.dps.rm.repository.ensemble.EnsembleSLORepository;
 import at.uibk.dps.rm.repository.function.FunctionRepository;
 import at.uibk.dps.rm.repository.metric.PlatformMetricRepository;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.*;
 public class DeploymentRepositoryProviderMock {
     private final DeploymentRepositoryProvider repositoryProvider = mock(DeploymentRepositoryProvider.class);
     private final DeploymentRepository deploymentRepository = mock(DeploymentRepository.class);
+    private final EnsembleRepository ensembleRepository = mock(EnsembleRepository.class);
     private final EnsembleSLORepository ensembleSLORepository = mock(EnsembleSLORepository.class);
     private final ResourceDeploymentRepository resourceDeploymentRepository = mock(ResourceDeploymentRepository.class);
     private final FunctionDeploymentRepository functionDeploymentRepository = mock(FunctionDeploymentRepository.class);
@@ -38,6 +40,7 @@ public class DeploymentRepositoryProviderMock {
 
     public void mockRepositories() {
         lenient().when(repositoryProvider.getDeploymentRepository()).thenReturn(deploymentRepository);
+        lenient().when(repositoryProvider.getEnsembleRepository()).thenReturn(ensembleRepository);
         lenient().when(repositoryProvider.getEnsembleSLORepository()).thenReturn(ensembleSLORepository);
         lenient().when(repositoryProvider.getResourceDeploymentRepository()).thenReturn(resourceDeploymentRepository);
         lenient().when(repositoryProvider.getFunctionDeploymentRepository()).thenReturn(functionDeploymentRepository);
