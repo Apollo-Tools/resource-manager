@@ -45,6 +45,7 @@ public class TestAWSPriceProvider {
         awsPriceProduct.setProductFamily(productFamily);
         awsPriceProduct.setAttributes(createProductAttributes(operatingSystem, instanceType, instanceSku,
             preInstalledSw, tenancy, usageType));
+        awsPriceProduct.setSku(productFamily + "." + productFamily);
         return awsPriceProduct;
     }
 
@@ -55,14 +56,14 @@ public class TestAWSPriceProvider {
         return awsPriceList;
     }
 
-    public static AWSPriceTerm createAwsPriceTerm(BigDecimal price) {
+    public static AWSPriceTerm createAwsPriceTerm(String dimension, BigDecimal price) {
         AWSPriceTerm awsPriceTerm = new AWSPriceTerm();
         AWSPricePricePerUnit pricePerUnit = new AWSPricePricePerUnit();
         pricePerUnit.setUsd(price);
         AWSPriceTermPriceDimensions priceDimensions = new AWSPriceTermPriceDimensions();
         priceDimensions.setPricePerUnit(pricePerUnit);
         priceDimensions.setBeginRange("0");
-        awsPriceTerm.setPriceDimensions(Map.of("priceDimension", priceDimensions));
+        awsPriceTerm.setPriceDimensions(Map.of(dimension, priceDimensions));
         return awsPriceTerm;
     }
 
