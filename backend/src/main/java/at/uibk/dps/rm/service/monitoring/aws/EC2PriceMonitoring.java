@@ -33,7 +33,7 @@ public class EC2PriceMonitoring implements AWSPriceMonitoring {
                 fut.complete(result.mapTo(AWSPriceList.class));
             }))
             .flatMapSingle(priceList -> Observable.fromIterable(priceList.getProducts().values())
-                .filter(EC2PriceMonitoring::isSupportedEc2Instance)
+                .filter(this::isSupportedEc2Instance)
                 .flatMapSingle(product -> Observable.fromIterable(priceList.getTerms().getOnDemand()
                         .get(product.getSku()).values().iterator().next().getPriceDimensions().values())
                     .filter(term -> term.getBeginRange().equals("0"))
@@ -46,7 +46,7 @@ public class EC2PriceMonitoring implements AWSPriceMonitoring {
             .toSingle();
     }
 
-    private static boolean isSupportedEc2Instance(AWSPriceProduct product) {
+    private boolean isSupportedEc2Instance(AWSPriceProduct product) {
         return product.getProductFamily().equals("Compute Instance") &&
             product.getAttributes().getInstancesku() == null &&
             product.getAttributes().getOperatingSystem().equals("Linux") &&
