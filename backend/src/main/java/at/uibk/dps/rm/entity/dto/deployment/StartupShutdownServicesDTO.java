@@ -4,14 +4,17 @@ import at.uibk.dps.rm.entity.model.Deployment;
 import at.uibk.dps.rm.entity.model.ServiceDeployment;
 import io.vertx.codegen.annotations.DataObject;
 import io.vertx.core.json.JsonObject;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents the output of the startup/shutdown services operation.
+ * Contains the deployment and the service deployments.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -41,17 +44,19 @@ public class StartupShutdownServicesDTO {
         return JsonObject.mapFrom(this);
     }
 
+    @Generated
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
 
-        StartupShutdownServicesDTO that = (StartupShutdownServicesDTO) o;
+        StartupShutdownServicesDTO that = (StartupShutdownServicesDTO) obj;
 
         if (!Objects.equals(deployment, that.deployment)) return false;
         return Objects.equals(serviceDeployments, that.serviceDeployments);
     }
 
+    @Generated
     @Override
     public int hashCode() {
         int result = deployment != null ? deployment.hashCode() : 0;

@@ -82,6 +82,9 @@ public class TerraformFileServiceTest {
         testContext.completeNow();
     }
 
+    /**
+     * Test implementation of the {@link TerraformFileService} class with an empty file content.
+     */
     private static class EmptyFileService extends TerraformFileService {
 
         public EmptyFileService(FileSystem fileSystem, Path rootFolder) {

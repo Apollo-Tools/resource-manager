@@ -71,6 +71,13 @@ public class MainTerraformExecutor extends TerraformExecutor {
         return executeCliWithCredentials(folder, commands);
     }
 
+    /**
+     * Execute the terraform cli with credentials in the provided folder with the given commands.
+     *
+     * @param folder the folder path
+     * @param commands the commands to execute
+     * @return a Single that emits the process output of the cli operation
+     */
     protected Single<ProcessOutput> executeCliWithCredentials(Path folder, List<String> commands) {
         List<String> cloudCredentials = getCloudCredentialsCommands();
         commands.addAll(cloudCredentials);
