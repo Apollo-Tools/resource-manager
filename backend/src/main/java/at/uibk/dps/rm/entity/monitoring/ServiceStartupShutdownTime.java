@@ -8,6 +8,11 @@ import lombok.Setter;
 
 import java.util.List;
 
+/**
+ * Represents the startup and shutdown time of a service.
+ *
+ * @author matthi-g
+ */
 @Getter
 @Setter
 public class ServiceStartupShutdownTime {
@@ -25,6 +30,15 @@ public class ServiceStartupShutdownTime {
     @JsonProperty
     private boolean isStartup;
 
+    /**
+     * Create an instance of the service startup/shutdown time.
+     *
+     * @param id the id of the service
+     * @param deploymentId the deployment id
+     * @param executionTime the execution time
+     * @param serviceDeployments the service deployments
+     * @param isStartup whether it is a startup or shutdown
+     */
     @JsonCreator
     public ServiceStartupShutdownTime(@JsonProperty("id") String id,
                                       @JsonProperty("deployment_id") long deploymentId,

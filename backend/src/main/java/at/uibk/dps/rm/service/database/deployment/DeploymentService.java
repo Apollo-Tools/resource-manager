@@ -40,6 +40,15 @@ public interface DeploymentService extends DatabaseServiceInterface {
         return new DeploymentServiceVertxEBProxy(vertx, ServiceProxyAddress.getServiceProxyAddress(Deployment.class));
     }
 
+    /**
+     * Find one deployment by its id, id of the creator and whether to ignore a running state
+     * change.
+     *
+     * @param id the id of the deployment
+     * @param accountId the id of the creator account
+     * @param ignoreRunningStateChange whether to ignore the running state change
+     * @param resultHandler receives the deployment if it exists else an error is thrown
+     * */
     void findOneForServiceOperationByIdAndAccountId(long id, long accountId, boolean ignoreRunningStateChange,
         Handler<AsyncResult<JsonObject>> resultHandler);
 

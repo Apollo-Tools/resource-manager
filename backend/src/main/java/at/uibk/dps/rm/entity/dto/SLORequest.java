@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
+import lombok.Generated;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,7 @@ public abstract class SLORequest {
     private List<Long> regions = new ArrayList<>();
     private List<Long> providers = new ArrayList<>();
 
+    @Generated
     @Override
     public boolean equals(Object object) {
         if (this == object) return true;
@@ -48,6 +50,7 @@ public abstract class SLORequest {
         return Objects.equals(providers, that.providers);
     }
 
+    @Generated
     @Override
     public int hashCode() {
         int result = serviceLevelObjectives != null ? serviceLevelObjectives.hashCode() : 0;

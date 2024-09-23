@@ -9,6 +9,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Represents the output of the setup terraform modules operation.
+ * Contains the terraform modules and the deployment credentials.
+ *
+ * @author matthi-g
+ */
 @Data
 @NoArgsConstructor
 @DataObject

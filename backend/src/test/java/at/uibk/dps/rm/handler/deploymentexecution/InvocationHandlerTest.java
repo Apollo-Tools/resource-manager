@@ -81,7 +81,7 @@ public class InvocationHandlerTest {
     private FunctionExecutionService functionExecutionService;
 
     @Mock
-    private ServiceStartupShutdownPushService serviceStartupShutdownPushService;
+    private ServiceStartupShutdownPushService startupShutdownPushService;
 
     @Mock
     private FunctionInvocationPushService functionInvocationPushService;
@@ -110,7 +110,7 @@ public class InvocationHandlerTest {
         lenient().when(serviceProxyProvider.getFunctionInvocationPushService())
             .thenReturn(functionInvocationPushService);
         lenient().when(serviceProxyProvider.getServiceStartStopPushService())
-            .thenReturn(serviceStartupShutdownPushService);
+            .thenReturn(startupShutdownPushService);
         account = TestAccountProvider.createAccount(1L);
         d1 = TestDeploymentProvider.createDeployment(1L);
         Resource r1 = TestResourceProvider.createResource(3L);
@@ -173,7 +173,7 @@ public class InvocationHandlerTest {
         }
 
         if (successDeploymentTermination) {
-            when(serviceStartupShutdownPushService.composeAndPushMetric(argThat(metrics -> {
+            when(startupShutdownPushService.composeAndPushMetric(argThat(metrics -> {
                 ServiceStartupShutdownTime serviceStartupShutdownTime = metrics.mapTo(ServiceStartupShutdownTime.class);
                 return !serviceStartupShutdownTime.getId().isBlank() && serviceStartupShutdownTime.getExecutionTime() > 0.0 &&
                     serviceStartupShutdownTime.getServiceDeployments().equals(List.of(sd1, sd2)) &&

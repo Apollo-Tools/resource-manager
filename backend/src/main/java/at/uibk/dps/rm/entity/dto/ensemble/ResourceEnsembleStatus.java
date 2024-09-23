@@ -2,6 +2,7 @@ package at.uibk.dps.rm.entity.dto.ensemble;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import lombok.Generated;
 
 import java.beans.ConstructorProperties;
 
@@ -31,17 +32,19 @@ public class ResourceEnsembleStatus {
     @JsonProperty("is_valid")
     private final boolean isValid;
 
+    @Generated
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
 
-        ResourceEnsembleStatus that = (ResourceEnsembleStatus) o;
+        ResourceEnsembleStatus that = (ResourceEnsembleStatus) obj;
 
         if (resourceId != that.resourceId) return false;
         return isValid == that.isValid;
     }
 
+    @Generated
     @Override
     public int hashCode() {
         int result = (int) (resourceId ^ (resourceId >>> 32));

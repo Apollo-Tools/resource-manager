@@ -35,6 +35,14 @@ public class ServiceDeploymentServiceImpl extends DatabaseServiceProxy<ServiceDe
         this.repository = repository;
     }
 
+    /**
+     * Find all service deployments for the given resource deployment ids, account id and deployment id.
+     *
+     * @param resourceDeploymentIds the resource deployment ids
+     * @param accountId id of the creator account
+     * @param deploymentId the deployment id
+     * @param resultHandler receives the found entities as JsonArray
+     */
     public void findAllForServiceOperation(List<Long> resourceDeploymentIds, long accountId, long deploymentId,
             Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<ServiceDeployment>> findAll = smProvider.withTransactionSingle(sm -> repository

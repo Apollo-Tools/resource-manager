@@ -9,6 +9,11 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.rxjava3.core.Vertx;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * The {@link MonitoringHandler} for the validation of ensembles.
+ *
+ * @author matthi-g
+ */
 @RequiredArgsConstructor
 public class EnsembleValidationHandler implements MonitoringHandler{
 

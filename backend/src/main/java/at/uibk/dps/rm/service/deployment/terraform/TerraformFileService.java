@@ -22,6 +22,12 @@ public abstract class TerraformFileService {
 
     private String fileNamePrefix;
 
+    /**
+     * Create an instance with a file system and a root folder.
+     *
+     * @param fileSystem the vertx file system
+     * @param rootFolder the root folder of the terraform module
+     */
     public TerraformFileService(FileSystem fileSystem, Path rootFolder) {
         this(fileSystem, rootFolder, "");
     }

@@ -20,6 +20,12 @@ public abstract class TerraformModule {
     // TODO: remove module type and use instance of
     private final ModuleType moduleType;
 
+    /**
+     * Create an instance of the terraform module using the module name and module type.
+     *
+     * @param moduleName the module name
+     * @param moduleType the module type
+     */
     public TerraformModule(String moduleName, ModuleType moduleType) {
         this.moduleName = moduleName;
         this.moduleType = moduleType;
