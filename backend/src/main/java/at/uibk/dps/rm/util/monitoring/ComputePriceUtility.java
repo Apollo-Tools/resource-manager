@@ -2,7 +2,6 @@ package at.uibk.dps.rm.util.monitoring;
 
 import at.uibk.dps.rm.entity.dto.monitoring.awspricelist.AWSPriceProduct;
 import at.uibk.dps.rm.entity.dto.monitoring.awspricelist.AWSPriceTermPriceDimensions;
-import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,7 +11,6 @@ import java.math.RoundingMode;
  *
  * @author matthi-g
  */
-@UtilityClass
 public class ComputePriceUtility {
 
     private static final long REQUEST_AMOUNT = 1_000_000L;
@@ -25,7 +23,7 @@ public class ComputePriceUtility {
      * @param priceDimensions the AWS price list price dimensions
      * @return the computed price
      */
-    public static BigDecimal computerEC2Price(AWSPriceTermPriceDimensions priceDimensions) {
+    public BigDecimal computeEC2Price(AWSPriceTermPriceDimensions priceDimensions) {
         BigDecimal totalExecTimeHours = BigDecimal.valueOf(REQUEST_AMOUNT * REQUEST_DURATION_SECONDS)
             .divide(BigDecimal.valueOf(3600), RoundingMode.HALF_UP);
         return priceDimensions.getPricePerUnit().getUsd().multiply(totalExecTimeHours);
@@ -37,7 +35,7 @@ public class ComputePriceUtility {
      * @param priceDimensions the AWS price list price dimensions
      * @return the computed price
      */
-    public static BigDecimal computeLambdaPrice(AWSPriceProduct product, AWSPriceTermPriceDimensions priceDimensions) {
+    public BigDecimal computeLambdaPrice(AWSPriceProduct product, AWSPriceTermPriceDimensions priceDimensions) {
         if (product.getAttributes().getUsagetype().endsWith("Lambda-GB-Second")) {
             long memoryGB = 1;
             BigDecimal factor = BigDecimal

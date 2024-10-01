@@ -211,8 +211,6 @@ public class K8sMonitoringServiceImplTest {
         }
     }
 
-    // TODO: add tests
-
     @Test
     void setupLocalClientIOException() {
         try(MockedStatic<Config> k8sConfig = Mockito.mockStatic(Config.class)) {

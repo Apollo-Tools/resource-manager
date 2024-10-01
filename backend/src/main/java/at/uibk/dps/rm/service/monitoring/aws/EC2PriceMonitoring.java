@@ -24,6 +24,8 @@ public class EC2PriceMonitoring implements AWSPriceMonitoring {
 
     private final WebClient webClient;
 
+    private final ComputePriceUtility computePriceUtility;
+
     @Override
     public Single<List<Pair<String, BigDecimal>>> computeExpectedPrice(String priceUrl) {
         return webClient.getAbs(priceUrl)
@@ -38,7 +40,7 @@ public class EC2PriceMonitoring implements AWSPriceMonitoring {
                         .get(product.getSku()).values().iterator().next().getPriceDimensions().values())
                     .filter(term -> term.getBeginRange().equals("0"))
                     .firstOrError()
-                    .map(ComputePriceUtility::computerEC2Price)
+                    .map(computePriceUtility::computeEC2Price)
                     .map(price -> new Pair<>(product.getAttributes().getInstanceType(), price))
                 )
                 .toList()

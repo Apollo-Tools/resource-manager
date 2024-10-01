@@ -82,7 +82,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
-    // TODO: check if valid
     @Override
     public void findOne(long id, Handler<AsyncResult<JsonObject>> resultHandler) {
         Maybe<Ensemble> findOne = smProvider.withTransactionMaybe( sm -> sm.find(Ensemble.class, id)
@@ -91,7 +90,6 @@ public class EnsembleServiceImpl extends DatabaseServiceProxy<Ensemble> implemen
         RxVertxHandler.handleSession(findOne.map(JsonObject::mapFrom), resultHandler);
     }
 
-    // TODO: fix return values
     @Override
     public void saveToAccount(long accountId, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         CreateEnsembleRequest request = data.mapTo(CreateEnsembleRequest.class);

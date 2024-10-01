@@ -36,16 +36,17 @@ public class TestAWSPriceProvider {
         attributes.setPreInstalledSw(preInstalledSw);
         attributes.setTenancy(tenancy);
         attributes.setUsagetype(usagetype);
+        attributes.setGroup("none");
         return attributes;
     }
 
-    public static AWSPriceProduct createAWSPriceProduct(String productFamily, String instanceType,
+    public static AWSPriceProduct createAWSPriceProduct(String name, String productFamily, String instanceType,
             String operatingSystem, String instanceSku, String tenancy, String preInstalledSw, String usageType) {
         AWSPriceProduct awsPriceProduct = new AWSPriceProduct();
         awsPriceProduct.setProductFamily(productFamily);
         awsPriceProduct.setAttributes(createProductAttributes(operatingSystem, instanceType, instanceSku,
             preInstalledSw, tenancy, usageType));
-        awsPriceProduct.setSku(productFamily + "." + productFamily);
+        awsPriceProduct.setSku(name);
         return awsPriceProduct;
     }
 
@@ -63,6 +64,7 @@ public class TestAWSPriceProvider {
         AWSPriceTermPriceDimensions priceDimensions = new AWSPriceTermPriceDimensions();
         priceDimensions.setPricePerUnit(pricePerUnit);
         priceDimensions.setBeginRange("0");
+        priceDimensions.setEndRange(dimension);
         awsPriceTerm.setPriceDimensions(Map.of(dimension, priceDimensions));
         return awsPriceTerm;
     }

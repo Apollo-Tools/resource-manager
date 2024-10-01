@@ -89,7 +89,6 @@ public class ResourceServiceImpl extends DatabaseServiceProxy<Resource> implemen
         RxVertxHandler.handleSession(findAll.map(this::mapResourceListToJsonArray), resultHandler);
     }
 
-    // TODO: remove main_resource
     @Override
     public void findAllSubResources(long resourceId, Handler<AsyncResult<JsonArray>> resultHandler) {
         Single<List<SubResource>> findAll = smProvider.withTransactionSingle(sm ->
