@@ -69,7 +69,6 @@ public class RegionServiceImpl extends DatabaseServiceProxy<Region> implements R
         RxVertxHandler.handleSession(findAll.map(this::mapResultListToJsonArray), resultHandler);
     }
 
-    // TODO: check user role
     @Override
     public void save(JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
         Region region = data.mapTo(Region.class);

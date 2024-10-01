@@ -11,6 +11,7 @@ import at.uibk.dps.rm.service.monitoring.k8s.K8sMonitoringServiceImpl;
 import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryService;
 import at.uibk.dps.rm.service.monitoring.metricquery.MetricQueryServiceImpl;
 import at.uibk.dps.rm.service.monitoring.metricpusher.*;
+import at.uibk.dps.rm.util.monitoring.ComputePriceUtility;
 import at.uibk.dps.rm.util.monitoring.LatencyMonitoringUtility;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
@@ -41,8 +42,8 @@ public class MonitoringVerticle extends AbstractVerticle {
         webClient = WebClient.create(vertx);
         ServiceProxyProvider serviceProxyProvider = new ServiceProxyProvider(vertx);
         ConfigDTO config = config().mapTo(ConfigDTO.class);
-        LambdaPriceMonitoring lambdaMonitoring = new LambdaPriceMonitoring(webClient);
-        EC2PriceMonitoring ec2PriceMonitoring = new EC2PriceMonitoring(webClient);
+        LambdaPriceMonitoring lambdaMonitoring = new LambdaPriceMonitoring(webClient, new ComputePriceUtility());
+        EC2PriceMonitoring ec2PriceMonitoring = new EC2PriceMonitoring(webClient, new ComputePriceUtility());
         LatencyMonitoringUtility latencyMonitoringUtility = new LatencyMonitoringUtility();
         monitoringHandlers.add(new AWSPriceListMonitoringHandler(vertx, config, serviceProxyProvider,
             lambdaMonitoring, ec2PriceMonitoring));
