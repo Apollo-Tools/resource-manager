@@ -13,7 +13,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.ext.web.client.WebClient;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -42,7 +41,6 @@ public class ResourceEnsembleRouteTest extends RouterTest {
         }).blockingSubscribe(res -> {}, throwable -> testContext.failNow(throwable.getMessage()));
     }
 
-    @Disabled
     @Test
     void addResourceToEnsemble(Vertx vertx, VertxTestContext testContext) {
         WebClient client = WebClient.create(vertx);

@@ -30,6 +30,7 @@
 
   "monitoring_push_url": "http://localhost:4242",
   "monitoring_query_url": "http://localhost:8428",
+  "latency_monitoring_count": 2,
   "kube_monitoring_period": 5,
   "openfaas_monitoring_period": 5,
   "region_monitoring_period": 5,
