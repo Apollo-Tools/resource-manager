@@ -77,5 +77,6 @@ ENV kube_monitoring_period=5
 ENV openfaas_monitoring_period=5
 ENV region_monitoring_period=5
 ENV aws_price_monitoring_period=86400
+ENV file_cleanup_period=86400
 
 ENTRYPOINT ["java", "-jar" ,"/app/rm-api.jar"]
