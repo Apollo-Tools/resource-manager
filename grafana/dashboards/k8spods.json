@@ -317,6 +317,10 @@
               {
                 "id": "custom.width",
                 "value": 169
+              },
+              {
+                "id": "unit",
+                "value": ""
               }
             ]
           },

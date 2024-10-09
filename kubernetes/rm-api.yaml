@@ -122,6 +122,9 @@ spec:
             # The time period between each monitoring update the aws price list api in minutes
             - name: aws_price_monitoring_period
               value: "86400"
+            # The time period between file clean ups of failed deployments.
+            - name: file_cleanup_period
+              value: "86400"
           resources:
             # The resource limits
             limits:

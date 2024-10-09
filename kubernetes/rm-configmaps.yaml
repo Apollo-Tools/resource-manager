@@ -2438,6 +2438,10 @@ data:
                   {
                     "id": "decimals",
                     "value": 0
+                  },
+                  {
+                    "id": "unit",
+                    "value": ""
                   }
                 ]
               },
@@ -4637,7 +4641,7 @@ data:
               "source": "url",
               "type": "csv",
               "uql": "parse-csv",
-              "url": "http://victoria-metrics:8428/api/v1/export/csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
               "url_options": {
                 "body_content_type": "text/plain",
                 "body_type": "raw",
@@ -4831,7 +4835,7 @@ data:
               "source": "url",
               "type": "csv",
               "uql": "parse-csv",
-              "url": "http://victoria-metrics:8428/api/v1/export/csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
               "url_options": {
                 "data": "",
                 "method": "GET",
@@ -5129,7 +5133,7 @@ data:
               "source": "url",
               "type": "csv",
               "uql": "parse-csv",
-              "url": "http://victoria-metrics:8428/api/v1/export/csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
               "url_options": {
                 "body_content_type": "text/plain",
                 "body_type": "raw",
@@ -5323,7 +5327,7 @@ data:
               "source": "url",
               "type": "csv",
               "uql": "parse-csv",
-              "url": "http://victoria-metrics:8428/api/v1/export/csv",
+              "url": "http://rm-monitoring-vm:8889/api/v1/export/csv",
               "url_options": {
                 "data": "",
                 "method": "GET",
